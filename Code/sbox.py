@@ -12,6 +12,16 @@
 class SBox:
 
 	"""
+		Class Configuration Functions
+		-----------------------------
+
+		__init__()
+		__getitem__()
+	"""
+
+
+
+	"""
 		Store the sbox in internal representation
 		
 		m = # of ip bits in sbox 
@@ -43,11 +53,25 @@ class SBox:
 		self.gen_lat_table()
 		self.gen_dat_table()
 
+
 	"""
 		Allows use of sbox object as a map from i to S(i)
 	"""
 	def __getitem__(self, i):
 		return self.S[i]
+
+
+
+	"""
+		Helper Member Functions
+		-----------------------
+
+		xor_sum()
+		zero_count_in_map()
+		op_diff_counts()
+	"""
+
+
 
 	"""
 		Gets xor sum of bits in num(should be of size max(m,n) bits)
@@ -59,6 +83,7 @@ class SBox:
 			xsum ^= 1 if ((2**i) & num) else 0
 
 		return xsum
+
 
 	"""
 		Given ip_selector row_sel and op_selector col_sel
@@ -72,7 +97,6 @@ class SBox:
 			active_op = col_sel & self[i]			
 
 			xor_ip_op = active_ip ^ active_op
-
 			count += int(not self.xor_sum(xor_ip_op))
 
 		return count
@@ -85,7 +109,7 @@ class SBox:
 	def op_diff_counts(self, ipdiff):
 		counts = [0]*self.no_of_possible_ops
 
-		for i in range(0, self.no_of_possible_ips):
+		for i in range(self.no_of_possible_ips):
 			x    = i
 			xbar = ipdiff ^ i
 			
@@ -94,44 +118,76 @@ class SBox:
 
 		return counts
 
+
+
+	"""
+		Member Functions for generating tables
+		--------------------------------------
+
+		gen_lat_table()
+		gen_dat_table()
+	"""
+
+
+
 	"""
 		Generate the LAT for given sbox
 	"""
 	def gen_lat_table(self):	
+
 		# Initialize counts
 		self.lat = [None]*(self.no_of_ip_subsets)
 		for i in range(self.no_of_ip_subsets):
 			self.lat[i] = [0]*self.no_of_op_subsets
 
-		for i in range(0, self.no_of_ip_subsets):
-			for j in range(0, self.no_of_op_subsets):
+		for i in range(self.no_of_ip_subsets):
+			for j in range(self.no_of_op_subsets):
 				self.lat[i][j] = self.zero_count_in_map(i,j)
+
 
 	"""
 		Generates the DAT for given sbox
 	"""
 	def gen_dat_table(self):
+
 		# Initialize counts
 		self.dat = [None]*(self.no_of_ip_subsets)
 
-		for i in range(0, self.no_of_ip_subsets):
+		for i in range(self.no_of_ip_subsets):
 			self.dat[i] = self.op_diff_counts(i)
+
+
+
+	"""
+		Member Functions for printing Ops to File
+		-----------------------------------------
+
+		write_to_file()
+		write_lat_to_file()
+		write_dat_to_file()
+
+	"""
+
+
+	"""
+		Generic table writer
+	"""
+	def write_to_file(self, fil, table, xmax, ymax):
+		for i in range(xmax):
+			for j in range(ymax):
+				fil.write('{:4d},'.format(table[i][j]))
+			fil.write("\n")
+
 
 	"""
 		Write the lat table of the sbox to fil
 	"""
 	def write_lat_to_file(self, fil):
-		for i in range(0, self.no_of_ip_subsets):
-			for j in range(0, self.no_of_op_subsets):
-				fil.write('{:4d},'.format(self.lat[i][j]))
-			fil.write("\n")
+		self.write_to_file(fil, self.lat, self.no_of_ip_subsets, self.no_of_op_subsets)
+
 
 	"""
 		Write the dat table of the sbox to fil
 	"""
 	def write_dat_to_file(self, fil):
-		for i in range(0, self.no_of_ip_subsets):
-			for j in range(0, self.no_of_op_subsets):
-				
-				fil.write('{:4d},'.format(self.dat[i][j]))
-			fil.write("\n")
+		self.write_to_file(fil, self.dat, self.no_of_ip_subsets, self.no_of_op_subsets)
