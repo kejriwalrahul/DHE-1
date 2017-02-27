@@ -1,5 +1,5 @@
 """
-	Program To Compute The Linear Approximation Table for a given S-Box
+	Program To Compute The Linear Approximation Table and Difference Distribution Table for a given S-Box
 
 	Written By Rahul Kejriwal
 	Started on 27/2/16
