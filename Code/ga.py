@@ -44,7 +44,7 @@ class GeneticOptimization:
 	def initPopulation(self):
 		population = []
 		for i in range(self.n):
-			self.population.append(self.optimizationClass())
+			self.population.append(self.optimizationClass().randomize())
 
 		return population
 
