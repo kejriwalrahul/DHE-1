@@ -36,3 +36,5 @@ fil.close()
 fil = open('Output/my_sbox_dat', 'w')
 mysbox.write_dat_to_file(fil)
 fil.close()
+
+print mysbox.non_linearity()

@@ -5,6 +5,7 @@
 	Started on 27/2/16
 """
 
+import numpy as np
 
 """
 	Class used for representing the sbox
@@ -191,3 +192,41 @@ class SBox:
 	"""
 	def write_dat_to_file(self, fil):
 		self.write_to_file(fil, self.dat, self.no_of_ip_subsets, self.no_of_op_subsets)
+
+
+
+	"""
+	def nl(self, row, ip_bit):
+		count = 0
+		for i in range(len(row)):
+			curr = -1 if (self[i] & (2**ip_bit)) else 0
+			if curr != row[i]:
+				count += 1
+
+		return count
+
+
+	# Computes non-linearity of given sbox
+	def non_linearity(self):
+		wh_matrix = np.zeros((1,1))
+		for i in range(self.no_of_possible_ips):
+			wh_matrix_new = np.zeros( (len(wh_matrix)*2, len(wh_matrix)*2,) )
+			
+			wh_matrix_new[:len(wh_matrix), :len(wh_matrix)] =  wh_matrix[:,:]
+			wh_matrix_new[:len(wh_matrix), len(wh_matrix):] =  wh_matrix[:,:]
+			wh_matrix_new[len(wh_matrix):, :len(wh_matrix)] =  wh_matrix[:,:]
+			wh_matrix_new[len(wh_matrix):, len(wh_matrix):] = -wh_matrix[:,:]
+
+			wh_matrix = wh_matrix_new
+
+		non_linearity = []
+		for i in range(self.n):
+			min_dist = 2**self.m
+
+			for j in range(self.no_of_ip_subsets):
+				res = self.nl(wh_matrix[j], i)
+				if res < min_dist:
+					min_dist = res
+					
+				non_linearity.append(res)
+	"""
