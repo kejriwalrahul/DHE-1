@@ -246,6 +246,9 @@ class SBox:
 
 	def mutate(self):
 		m_sbox = Sbox(self.m, self.n, self.mapping)
+		x = np.random.randint(0,len(self.mapping))
+		y = np.random.randint(0,len(self.mapping))
+		m_sbox.mapping[x], m_sbox.mapping[y] = y, x
 		return m_sbox
 
 	def randomize(self):
