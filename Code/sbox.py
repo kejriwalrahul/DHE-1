@@ -257,7 +257,7 @@ class SBox:
 		m_sbox = self.getCopy()
 		x = np.random.randint(0,len(self.S))
 		y = np.random.randint(0,len(self.S))
-		m_sbox.S[x], m_sbox.S[y] = y, x
+		m_sbox.S[x], m_sbox.S[y] = m_sbox.S[y], m_sbox.S[x]
 		return m_sbox
 
 	def randomize(self):
