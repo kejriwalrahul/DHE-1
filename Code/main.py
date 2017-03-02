@@ -27,6 +27,7 @@ mapping[15] = 0x7
 
 # 3. Generate Lat & Dat  
 SBox.initialize()
+# print SBox.wh_matrix
 mysbox = SBox(m, n, mapping)
 mysbox.tables()
 
@@ -40,10 +41,11 @@ fil = open('Output/my_sbox_dat', 'w')
 mysbox.write_dat_to_file(fil)
 fil.close()
 
+mysbox.S = [2, 9, 3, 6, 15, 10, 14, 7, 12, 1, 11, 0, 5, 8, 4, 13]
 print mysbox.non_linearity()
-print mysbox.fitness()
+# print mysbox.fitness()
 
-# 6. Run GA Optimization
-ga = GeneticOptimization(SBox)
-best = ga.run()
-print "best: ", best.non_linearity()
+# # 6. Run GA Optimization
+# ga = GeneticOptimization(SBox)
+# best = ga.run()
+# print "best: ", best.non_linearity()

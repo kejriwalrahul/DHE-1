@@ -6,6 +6,7 @@
 """
 
 import numpy as np
+import sys
 
 """
 	Class used for representing the sbox
@@ -220,18 +221,23 @@ class SBox:
 	
 	def nl(self, row, ip_bit):
 		count = 0
+		print row
+		arr = []
 		for i in range(len(row)):
-			curr = -1 if (self[i] & (2**ip_bit)) else 1
+			curr = 1 if (self[i] & (2**ip_bit)) else -1
+			arr.append(curr)
 			if curr != row[i]:
 				count += 1
-
+		print arr
+		print count
 		return count
 
 	
 	# Computes non-linearity of given sbox
 	def non_linearity(self):
 		non_linearity = []
-		for i in range(self.n):
+		# for i in range(self.n):
+		for i in range(1):
 			min_dist = 2**self.m
 
 			for j in range(self.no_of_ip_subsets):
@@ -240,7 +246,10 @@ class SBox:
 					min_dist = res
 					
 			non_linearity.append(min_dist)
-
+		if 8 in non_linearity:
+			print non_linearity
+			print self.S
+			sys.exit(0)
 		return non_linearity
 
 	#computes balanceness
