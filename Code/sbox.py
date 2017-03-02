@@ -182,18 +182,16 @@ class SBox:
 	"""
 	def nl(self, row, op_bit_selector):
 		count = 0
-		
-		row_representation = []
+		affined_count = 0
+
 		for i in range(len(row)):
 			curr = -1 if (self.S[i] & (2**op_bit_selector)) else 1
-			row_representation.append(float(curr))
 			if curr != row[i]:
 				count += 1
+			elif curr == row[i]:
+				affined_count += 1
 
-		# print row
-		# print np.array(row_representation)
-
-		return count
+		return min(count, affined_count)
 
 	
 	"""
@@ -210,12 +208,9 @@ class SBox:
 
 			for j in range(self.no_of_ip_subsets):
 				res = self.nl(self.wh_matrix[j], i)
-				# print res
 				min_dist = min(min_dist, res)
 					
 			non_linearity.append(min_dist)
-			# raw_input()
-
 
 		return non_linearity
 
