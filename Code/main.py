@@ -23,6 +23,7 @@ def object_generator():
 
 	return new_object
 
+"""
 # 1. SBox equations
 m = 4
 n = 4
@@ -66,6 +67,7 @@ fil.close()
 
 print mysbox.non_linearity()
 print mysbox.fitness()
+"""
 
 # 6. Run GA Optimization
 ga = GeneticOptimization(SBox, object_generator)

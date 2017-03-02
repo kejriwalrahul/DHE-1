@@ -8,7 +8,7 @@
 
 from random import shuffle, randint, random
 from numpy.random import choice
-# from tqdm import tqdm
+from tqdm import tqdm
 
 # for flushing stdout
 from sys import stdout
@@ -134,7 +134,7 @@ class GeneticOptimization:
 	def run(self, n):
 		population = self.initPopulation()
 
-		for i in range(self.number_of_iterations):
+		for i in tqdm(range(self.number_of_iterations)):
 			population_fitness  	= self.getFitness(population)
 			selected_population		= self.selection(population, population_fitness)
 			offspring_population	= self.crossoverPopulation(selected_population)
