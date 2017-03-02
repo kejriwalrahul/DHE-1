@@ -18,7 +18,8 @@ from sys import stdout
 
 	Takes an input class with following functions defined:
 		
-		constructor - automatically creates a random object	
+		constructor - creates new obj
+		randomize() - randomizes current object
 		fitness()   - returns a value proportional to caller objects fitness
 		mutate()    - returns mutated version of caller object
 		crossover() - static method, returns an array of crossovered offspring
