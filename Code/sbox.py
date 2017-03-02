@@ -246,7 +246,8 @@ class SBox:
 
 	# fitness based on non_linearity only
 	def fitness(self):
-		return min(self.non_linearity())
+		non_linearity = self.non_linearity()
+		return 99 * min(non_linearity) + sum(non_linearity)
 
 	def mutate(self):
 		m_sbox = self.getCopy()
@@ -258,11 +259,13 @@ class SBox:
 		return m_sbox
 
 	def randomize(self):
-		self.S = numpy.random.choice(self.S,len(self.S),replace=False);
+		self.S = np.random.permutation(self.S);
+		return self
 
 	#utility method for crossover
 	def swapData(self,parent, pos):
 		mem = set(self.S[:pos])
+		
 		j = 0
 		for i in range(pos,len(self.S)):
 			while (parent.S[j] in mem):
