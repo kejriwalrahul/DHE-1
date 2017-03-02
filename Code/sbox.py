@@ -235,3 +235,20 @@ class SBox:
 			non_linearity.append(min_dist)
 
 		return non_linearity
+
+	# fitness based on non_linearity only
+	def fitness(self):
+		arr = self.non_linearity()
+		fit_val = 100*min(arr);
+		for x in arr:
+			fit_val += x
+		return fit_val
+
+	def mutate(self):
+		m_sbox = Sbox(self.m, self.n, self.mapping)
+		return m_sbox
+
+	def randomize(self):
+
+	@staticmethod
+	def crossover(first, second):
