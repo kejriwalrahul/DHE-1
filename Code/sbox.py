@@ -30,7 +30,7 @@ class SBox:
 	
 		mapping = List of 2**m (rows) of form of op for the ith input
 	"""
-	def __init__(self, m, n, mapping):
+	def __init__(self, m, n, mapping, copy=False):
 		# Store sbox dimensions
 		self.m = m
 		self.n = n
@@ -50,9 +50,10 @@ class SBox:
 		self.lat = None
 		self.dat = None
 
-		# Build lat table
-		self.gen_lat_table()
-		self.gen_dat_table()
+		if (!copy)
+			# Build lat table
+			self.gen_lat_table()
+			self.gen_dat_table()
 
 
 	"""
@@ -236,6 +237,11 @@ class SBox:
 
 		return non_linearity
 
+	# get a exact copy
+	def getCopy(self):
+		new_sbox = Sbox(self.m, self.n, self.mapping, copy=True)
+		return new_sbox
+
 	# fitness based on non_linearity only
 	def fitness(self):
 		arr = self.non_linearity()
@@ -245,13 +251,31 @@ class SBox:
 		return fit_val
 
 	def mutate(self):
-		m_sbox = Sbox(self.m, self.n, self.mapping)
+		m_sbox = self.getCopy()
 		x = np.random.randint(0,len(self.mapping))
 		y = np.random.randint(0,len(self.mapping))
 		m_sbox.mapping[x], m_sbox.mapping[y] = y, x
 		return m_sbox
 
 	def randomize(self):
+		self.mapping = numpy.random.choice(self.mapping,len(self.mapping),replace=False);
 
+	#utility method for crossover
+	def swapData(self,parent, pos):
+		mem = set(self.mapping[:pos])
+		j = 0
+		for i in range(pos,len(self.mapping)):
+			while (parent.mapping[j] in mem):
+				j++
+			self.mapping[i] = parent.mapping[j]
+			mem.add(parent.mapping[j++])
+
+	#ordered crossover
 	@staticmethod
 	def crossover(first, second):
+		child1 = first.getCopy()
+		child2 = second.getCopy()
+		pos = np.random.randint(1,len(self.mapping))
+		child1.swapData(second,pos)
+		child2.swapData(first,pos)
+		return [child1, child2]
