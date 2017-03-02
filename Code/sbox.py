@@ -43,6 +43,7 @@ class SBox:
 		# Setup wh-matrix
 		self.wh_matrix = wh_matrix
 
+
 	"""
 		Allows use of sbox object as a map from i to S(i)
 	"""

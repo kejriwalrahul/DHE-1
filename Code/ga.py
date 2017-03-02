@@ -36,7 +36,7 @@ class GeneticOptimization:
 		self.n = 200
 		self.k = 100
 		self.mutate_prob = 0.4
-		self.number_of_iterations = 200
+		self.number_of_iterations = 100
 
 
 	"""
@@ -123,22 +123,15 @@ class GeneticOptimization:
 	"""
 		Get the ultimate best from population
 	"""
-	def best(self, population):
-		best_individual = population[0]
-		best_fitness    = best_individual.fitness()
-		
-		for i in range(1, self.n):
-			curr_fitness = population[i].fitness()
-			if curr_fitness < best_fitness:
-				best_fitness, best_individual = curr_fitness, population[i]
-
-		return best_individual
+	def best(self, population, n=1):
+		population = sorted(population, key = lambda x: x.fitness())
+		return population[-n:]
 
 
 	"""
 		Run the GA Optimization
 	"""
-	def run(self):
+	def run(self, n):
 		population = self.initPopulation()
 
 		for i in tqdm(range(self.number_of_iterations)):
@@ -151,7 +144,7 @@ class GeneticOptimization:
 			population = optimal_population
 
 			# Print best each iteration
-			print "Iteration i: ", self.best(population).fitness()
-			stdout.flush()
+			# print "Iteration i: ", self.best(population).fitness()
+			# stdout.flush()
 	
-		return self.best(population)
+		return self.best(population, n)
