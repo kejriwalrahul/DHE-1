@@ -12,6 +12,29 @@ import numpy as np
 """
 class SBox:
 
+	default_m = 4
+	default_n = 4
+	default_mapping = range(2**default_m)
+
+	wh_matrix = None
+
+	@staticmethod
+	def initialize():
+		SBox.wh_matrix = np.zeros((1,1))
+		SBox.wh_matrix[0][0] = 1 
+		
+		for i in range(SBox.default_m):
+			wh_matrix_new = np.zeros( (len(SBox.wh_matrix)*2, len(SBox.wh_matrix)*2,) )
+			
+			size_of_matrix = len(SBox.wh_matrix) 
+			wh_matrix_new[:size_of_matrix, :size_of_matrix] =  SBox.wh_matrix[:,:]
+			wh_matrix_new[:size_of_matrix, size_of_matrix:] =  SBox.wh_matrix[:,:]
+			wh_matrix_new[size_of_matrix:, :size_of_matrix] =  SBox.wh_matrix[:,:]
+			wh_matrix_new[size_of_matrix:, size_of_matrix:] = -SBox.wh_matrix[:,:]
+
+			SBox.wh_matrix = wh_matrix_new
+
+
 	"""
 		Class Configuration Functions
 		-----------------------------
@@ -19,7 +42,6 @@ class SBox:
 		__init__()
 		__getitem__()
 	"""
-
 
 
 	"""
@@ -30,7 +52,7 @@ class SBox:
 	
 		mapping = List of 2**m (rows) of form of op for the ith input
 	"""
-	def __init__(self, m, n, mapping):
+	def __init__(self, m = default_m, n = default_n, mapping = default_mapping):
 		# Store sbox dimensions
 		self.m = m
 		self.n = n
@@ -48,8 +70,7 @@ class SBox:
 
 		# Initialize lat and dat tables
 		self.lat = None
-		self.dat = None
-			
+		self.dat = None	
 
 
 	"""
@@ -62,6 +83,7 @@ class SBox:
 	def tables(self):
 		self.gen_lat_table()
 		self.gen_dat_table()
+
 
 	"""
 		Helper Member Functions
@@ -208,27 +230,12 @@ class SBox:
 	
 	# Computes non-linearity of given sbox
 	def non_linearity(self):
-		wh_matrix = np.zeros((1,1))
-		wh_matrix[0][0] = 1 
-		for i in range(self.m):
-			wh_matrix_new = np.zeros( (len(wh_matrix)*2, len(wh_matrix)*2,) )
-			
-			wh_matrix_new[:len(wh_matrix), :len(wh_matrix)] =  wh_matrix[:,:]
-			wh_matrix_new[:len(wh_matrix), len(wh_matrix):] =  wh_matrix[:,:]
-			wh_matrix_new[len(wh_matrix):, :len(wh_matrix)] =  wh_matrix[:,:]
-			wh_matrix_new[len(wh_matrix):, len(wh_matrix):] = -wh_matrix[:,:]
-
-			wh_matrix = wh_matrix_new
-
-		print wh_matrix
-
 		non_linearity = []
 		for i in range(self.n):
 			min_dist = 2**self.m
 
 			for j in range(self.no_of_ip_subsets):
-				res = self.nl(wh_matrix[j], i)
-				# print res
+				res = self.nl(SBox.wh_matrix[j], i)
 				if res < min_dist:
 					min_dist = res
 					
@@ -247,30 +254,31 @@ class SBox:
 
 	# get a exact copy
 	def getCopy(self):
-		new_sbox = Sbox(self.m, self.n, self.S)
+		new_sbox = SBox(self.m, self.n, self.S)
 		return new_sbox
 
 	# fitness based on non_linearity only
 	def fitness(self):
-		arr = self.non_linearity()
-		fit_val = 100*min(arr);
-		for x in arr:
-			fit_val += x
-		return fit_val
+		non_linearity = self.non_linearity()
+		return 99 * min(non_linearity) + sum(non_linearity)
 
 	def mutate(self):
 		m_sbox = self.getCopy()
+		
 		x = np.random.randint(0,len(self.S))
 		y = np.random.randint(0,len(self.S))
 		m_sbox.S[x], m_sbox.S[y] = m_sbox.S[y], m_sbox.S[x]
+
 		return m_sbox
 
 	def randomize(self):
-		self.S = numpy.random.permutation(self.S);
+		self.S = np.random.permutation(self.S)
+		return self
 
 	#utility method for crossover
 	def swapData(self,parent, pos):
 		mem = set(self.S[:pos])
+		
 		j = 0
 		for i in range(pos,len(self.S)):
 			while (parent.S[j] in mem):
@@ -284,7 +292,9 @@ class SBox:
 	def crossover(first, second):
 		child1 = first.getCopy()
 		child2 = second.getCopy()
-		pos = np.random.randint(1,len(self.S))
+
+		pos = np.random.randint(1, len(first.S))
 		child1.swapData(second,pos)
 		child2.swapData(first,pos)
+		
 		return [child1, child2]

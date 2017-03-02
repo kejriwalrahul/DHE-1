@@ -1,4 +1,5 @@
 from sbox import SBox
+from ga import GeneticOptimization
 
 # 1. SBox equations
 m = 4
@@ -25,7 +26,9 @@ mapping[14] = 0x0
 mapping[15] = 0x7
 
 # 3. Generate Lat & Dat  
+SBox.initialize()
 mysbox = SBox(m, n, mapping)
+mysbox.tables()
 
 # 4. Save lat to file
 fil = open('Output/my_sbox_lat', 'w')
@@ -38,3 +41,9 @@ mysbox.write_dat_to_file(fil)
 fil.close()
 
 print mysbox.non_linearity()
+print mysbox.fitness()
+
+# 6. Run GA Optimization
+ga = GeneticOptimization(SBox)
+best = ga.run()
+print "best: ", best.non_linearity()
