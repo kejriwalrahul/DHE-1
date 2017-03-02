@@ -50,7 +50,7 @@ class SBox:
 		self.lat = None
 		self.dat = None
 
-		if (!copy)
+		if not copy:
 			# Build lat table
 			self.gen_lat_table()
 			self.gen_dat_table()
@@ -266,9 +266,10 @@ class SBox:
 		j = 0
 		for i in range(pos,len(self.mapping)):
 			while (parent.mapping[j] in mem):
-				j++
+				j = j+1
 			self.mapping[i] = parent.mapping[j]
-			mem.add(parent.mapping[j++])
+			mem.add(parent.mapping[j])
+			j = j+1
 
 	#ordered crossover
 	@staticmethod
