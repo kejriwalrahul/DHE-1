@@ -30,7 +30,7 @@ class SBox:
 	
 		mapping = List of 2**m (rows) of form of op for the ith input
 	"""
-	def __init__(self, m, n, mapping, copy=False):
+	def __init__(self, m, n, mapping):
 		# Store sbox dimensions
 		self.m = m
 		self.n = n
@@ -49,11 +49,7 @@ class SBox:
 		# Initialize lat and dat tables
 		self.lat = None
 		self.dat = None
-
-		if not copy:
-			# Build lat table
-			self.gen_lat_table()
-			self.gen_dat_table()
+			
 
 
 	"""
@@ -63,6 +59,9 @@ class SBox:
 		return self.S[i]
 
 
+	def tables(self):
+		self.gen_lat_table()
+		self.gen_dat_table()
 
 	"""
 		Helper Member Functions
@@ -237,9 +236,13 @@ class SBox:
 
 		return non_linearity
 
+	#computes balanceness
+	def balanceness(self):
+
+
 	# get a exact copy
 	def getCopy(self):
-		new_sbox = Sbox(self.m, self.n, self.mapping, copy=True)
+		new_sbox = Sbox(self.m, self.n, self.mapping)
 		return new_sbox
 
 	# fitness based on non_linearity only
