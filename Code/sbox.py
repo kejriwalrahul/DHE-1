@@ -238,7 +238,12 @@ class SBox:
 
 	#computes balanceness
 	def balanceness(self):
-
+		output = [0 for _ in range(self.n)]
+		for x in self.S:
+			out = map(int,tuple(bin(x)[2:].zfill(8))).reverse()
+			for i in range(self.n):
+				output[i] += out[i]
+		return output
 
 	# get a exact copy
 	def getCopy(self):
@@ -261,7 +266,7 @@ class SBox:
 		return m_sbox
 
 	def randomize(self):
-		self.S = numpy.random.choice(self.S,len(self.S),replace=False);
+		self.S = numpy.random.permutation(self.S);
 
 	#utility method for crossover
 	def swapData(self,parent, pos):
