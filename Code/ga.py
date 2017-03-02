@@ -19,8 +19,6 @@ from sys import stdout
 
 	Takes an input class with following functions defined:
 		
-		constructor - creates new obj
-		randomize() - randomizes current object
 		fitness()   - returns a value proportional to caller objects fitness
 		mutate()    - returns mutated version of caller object
 		crossover() - static method, returns an array of crossovered offspring
@@ -30,8 +28,9 @@ class GeneticOptimization:
 	"""
 		Initialize and Confugure GA instance
 	"""
-	def __init__(self, optClass):
+	def __init__(self, optClass, object_generator):
 		self.optimizationClass = optClass
+		self.object_generator  = object_generator
 	
 		# GA Parameters - statically defined
 		self.n = 200
@@ -46,7 +45,7 @@ class GeneticOptimization:
 	def initPopulation(self):
 		population = []
 		for i in range(self.n):
-			population.append(self.optimizationClass().randomize())
+			population.append(self.object_generator())
 
 		return population
 

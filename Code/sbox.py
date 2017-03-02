@@ -13,38 +13,6 @@ import sys
 """
 class SBox:
 
-	default_m = 4
-	default_n = 4
-	default_mapping = range(2**default_m)
-
-	wh_matrix = None
-
-	@staticmethod
-	def initialize():
-		SBox.wh_matrix = np.zeros((1,1))
-		SBox.wh_matrix[0][0] = 1 
-		
-		for i in range(SBox.default_m):
-			wh_matrix_new = np.zeros( (len(SBox.wh_matrix)*2, len(SBox.wh_matrix)*2,) )
-			
-			size_of_matrix = len(SBox.wh_matrix) 
-			wh_matrix_new[:size_of_matrix, :size_of_matrix] =  SBox.wh_matrix[:,:]
-			wh_matrix_new[:size_of_matrix, size_of_matrix:] =  SBox.wh_matrix[:,:]
-			wh_matrix_new[size_of_matrix:, :size_of_matrix] =  SBox.wh_matrix[:,:]
-			wh_matrix_new[size_of_matrix:, size_of_matrix:] = -SBox.wh_matrix[:,:]
-
-			SBox.wh_matrix = wh_matrix_new
-
-
-	"""
-		Class Configuration Functions
-		-----------------------------
-
-		__init__()
-		__getitem__()
-	"""
-
-
 	"""
 		Store the sbox in internal representation
 		
@@ -53,7 +21,7 @@ class SBox:
 	
 		mapping = List of 2**m (rows) of form of op for the ith input
 	"""
-	def __init__(self, m = default_m, n = default_n, mapping = default_mapping):
+	def __init__(self, m, n, mapping, wh_matrix = None):
 		# Store sbox dimensions
 		self.m = m
 		self.n = n
@@ -73,6 +41,8 @@ class SBox:
 		self.lat = None
 		self.dat = None	
 
+		# Setup wh-matrix
+		self.wh_matrix = wh_matrix
 
 	"""
 		Allows use of sbox object as a map from i to S(i)
@@ -81,20 +51,12 @@ class SBox:
 		return self.S[i]
 
 
+	"""
+		Generate cryptanalysis tables
+	"""		
 	def tables(self):
 		self.gen_lat_table()
 		self.gen_dat_table()
-
-
-	"""
-		Helper Member Functions
-		-----------------------
-
-		xor_sum()
-		zero_count_in_map()
-		op_diff_counts()
-	"""
-
 
 
 	"""
@@ -143,17 +105,6 @@ class SBox:
 		return counts
 
 
-
-	"""
-		Member Functions for generating tables
-		--------------------------------------
-
-		gen_lat_table()
-		gen_dat_table()
-	"""
-
-
-
 	"""
 		Generate the LAT for given sbox
 	"""
@@ -181,18 +132,6 @@ class SBox:
 			self.dat[i] = self.op_diff_counts(i)
 
 
-
-	"""
-		Member Functions for printing Ops to File
-		-----------------------------------------
-
-		write_to_file()
-		write_lat_to_file()
-		write_dat_to_file()
-
-	"""
-
-
 	"""
 		Generic table writer
 	"""
@@ -217,60 +156,103 @@ class SBox:
 		self.write_to_file(fil, self.dat, self.no_of_ip_subsets, self.no_of_op_subsets)
 
 
+	"""
+		Initialize wh matrix
+	"""
+	def generate_wh(self):
+		# Compute wh_matrix	
+		wh_matrix = np.zeros((1,1))
+		wh_matrix[0][0] = 1 
+		
+		for i in range(self.m):
+			wh_matrix_new = np.zeros( (len(wh_matrix)*2, len(wh_matrix)*2,) )
+			
+			size_of_matrix = len(wh_matrix) 
+			wh_matrix_new[:size_of_matrix, :size_of_matrix] =  wh_matrix[:,:]
+			wh_matrix_new[:size_of_matrix, size_of_matrix:] =  wh_matrix[:,:]
+			wh_matrix_new[size_of_matrix:, :size_of_matrix] =  wh_matrix[:,:]
+			wh_matrix_new[size_of_matrix:, size_of_matrix:] = -wh_matrix[:,:]
 
-	
-	def nl(self, row, ip_bit):
+			wh_matrix = wh_matrix_new
+
+		self.wh_matrix = wh_matrix
+
+
+	"""
+		Compute hamming wt wrt single linear function
+	"""
+	def nl(self, row, op_bit_selector):
 		count = 0
-		print row
-		arr = []
+		
+		row_representation = []
 		for i in range(len(row)):
-			curr = 1 if (self[i] & (2**ip_bit)) else -1
-			arr.append(curr)
+			curr = -1 if (self.S[i] & (2**op_bit_selector)) else 1
+			# row_representation.append(float(curr))
 			if curr != row[i]:
 				count += 1
-		print arr
-		print count
+
+		# print np.array(row_representation)
+
 		return count
 
+	def nexl(self, row, op_bit_selector):
+		count = 0
+		
+		row_representation = []
+		for i in range(len(row)):
+			curr = -1 if (self.S[i] & (2**op_bit_selector)) else 1
+			row_representation.append(float(curr))
+			if curr != row[i]:
+				count += 1
+
+		print np.array(row_representation)
 	
-	# Computes non-linearity of given sbox
+	"""
+		Computes non-linearity of given sbox
+	"""
 	def non_linearity(self):
+
+		if self.wh_matrix == None:
+			self.generate_wh()
+
+		print self.wh_matrix
 		non_linearity = []
 		# for i in range(self.n):
 		for i in range(1):
 			min_dist = 2**self.m
 
 			for j in range(self.no_of_ip_subsets):
-				res = self.nl(SBox.wh_matrix[j], i)
-				if res < min_dist:
-					min_dist = res
+				res = self.nl(self.wh_matrix[j], i)
+				# print res
+				min_dist = min(min_dist, res)
 					
 			non_linearity.append(min_dist)
+			self.nexl(self.wh_matrix[0],i)
 		if 8 in non_linearity:
 			print non_linearity
 			print self.S
 			sys.exit(0)
 		return non_linearity
 
+
 	#computes balanceness
 	def balanceness(self):
-		output = [0 for _ in range(self.n)]
-		for x in self.S:
-			out = map(int,tuple(bin(x)[2:].zfill(8))).reverse()
-			for i in range(self.n):
-				output[i] += out[i]
-		return output
+		pass
+
 
 	# get a exact copy
 	def getCopy(self):
 		new_sbox = SBox(self.m, self.n, self.S)
 		return new_sbox
 
+
 	# fitness based on non_linearity only
 	def fitness(self):
 		non_linearity = self.non_linearity()
 		return 99 * min(non_linearity) + sum(non_linearity)
 
+
+	# Returns mutated copy of self
 	def mutate(self):
 		m_sbox = self.getCopy()
 		
@@ -280,9 +262,6 @@ class SBox:
 
 		return m_sbox
 
-	def randomize(self):
-		self.S = np.random.permutation(self.S)
-		return self
 
 	#utility method for crossover
 	def swapData(self,parent, pos):
@@ -296,6 +275,7 @@ class SBox:
 			mem.add(parent.S[j])
 			j = j+1
 
+
 	#ordered crossover
 	@staticmethod
 	def crossover(first, second):
@@ -307,3 +287,11 @@ class SBox:
 		child2.swapData(first,pos)
 		
 		return [child1, child2]
+
+
+	"""
+		Checks if a given sbox is bijective
+	"""
+	def check_bijective(self):
+		sorted_map = sorted(self.S)
+		return np.array_equal(sorted_map, np.array(range(self.no_of_ip_subsets)))
