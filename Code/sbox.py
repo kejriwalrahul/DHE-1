@@ -12,8 +12,8 @@ import numpy as np
 """
 class SBox:
 
-	default_m = 4
-	default_n = 4
+	default_m = 8
+	default_n = 8
 	default_mapping = range(2**default_m)
 
 	wh_matrix = None
