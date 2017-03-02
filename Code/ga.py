@@ -8,6 +8,7 @@
 
 from random import shuffle, randint, random
 from numpy.random import choice
+from tqdm import tqdm
 
 # for flushing stdout
 from sys import stdout
@@ -36,7 +37,7 @@ class GeneticOptimization:
 		self.n = 200
 		self.k = 100
 		self.mutate_prob = 0.4
-		self.number_of_iterations = 1000
+		self.number_of_iterations = 100
 
 
 	"""
@@ -45,7 +46,7 @@ class GeneticOptimization:
 	def initPopulation(self):
 		population = []
 		for i in range(self.n):
-			self.population.append(self.optimizationClass().randomize())
+			population.append(self.optimizationClass().randomize())
 
 		return population
 
@@ -70,7 +71,7 @@ class GeneticOptimization:
 		# Compute probablilty of survival of citizen 
 		total_fitness = sum(fitness)
 		for i in range(len(fitness)):
-			fitness[i] /= total_fitness
+			fitness[i] = (fitness[i]*1.0) / total_fitness
 
 		# Select individuals
 		for i in range(self.n):
@@ -125,7 +126,7 @@ class GeneticOptimization:
 	"""
 	def best(self, population):
 		best_individual = population[0]
-		best_fitness    = curr_best.fitness()
+		best_fitness    = best_individual.fitness()
 		
 		for i in range(1, self.n):
 			curr_fitness = population[i].fitness()
@@ -141,18 +142,17 @@ class GeneticOptimization:
 	def run(self):
 		population = self.initPopulation()
 
-		for i in range(self.number_of_iterations):
+		for i in tqdm(range(self.number_of_iterations)):
 			population_fitness  	= self.getFitness(population)
 			selected_population		= self.selection(population, population_fitness)
 			offspring_population	= self.crossoverPopulation(selected_population)
 			mutated_population		= self.mutate(offspring_population)
-			optimal_population  	= self.optimizePopulation(population, mutated_population, fitness)
+			optimal_population  	= self.optimizePopulation(population, mutated_population, population_fitness)
 			
 			population = optimal_population
 
-			"""
-			print self.best(population).fitness()
+			# Print best each iteration
+			print "Iteration i: ", self.best(population).fitness()
 			stdout.flush()
-			"""
 	
-		return best(population)
+		return self.best(population)
