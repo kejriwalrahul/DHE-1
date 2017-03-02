@@ -48,8 +48,7 @@ class SBox:
 
 		# Initialize lat and dat tables
 		self.lat = None
-		self.dat = None
-			
+		self.dat = None			
 
 
 	"""
@@ -238,7 +237,7 @@ class SBox:
 
 	#computes balanceness
 	def balanceness(self):
-
+		pass
 
 	# get a exact copy
 	def getCopy(self):
@@ -247,17 +246,15 @@ class SBox:
 
 	# fitness based on non_linearity only
 	def fitness(self):
-		arr = self.non_linearity()
-		fit_val = 100*min(arr);
-		for x in arr:
-			fit_val += x
-		return fit_val
+		return min(self.non_linearity())
 
 	def mutate(self):
 		m_sbox = self.getCopy()
+		
 		x = np.random.randint(0,len(self.mapping))
 		y = np.random.randint(0,len(self.mapping))
-		m_sbox.mapping[x], m_sbox.mapping[y] = y, x
+		m_sbox.mapping[x], m_sbox.mapping[y] = m_sbox.mapping[y], m_sbox.mapping[x]
+		
 		return m_sbox
 
 	def randomize(self):

@@ -26,6 +26,7 @@ mapping[15] = 0x7
 
 # 3. Generate Lat & Dat  
 mysbox = SBox(m, n, mapping)
+mysbox.tables()
 
 # 4. Save lat to file
 fil = open('Output/my_sbox_lat', 'w')
