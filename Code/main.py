@@ -23,11 +23,9 @@ def object_generator():
 
 	return new_object
 
-"""
 # 1. SBox equations
 m = 4
 n = 4
-
 # 2. Generate Map
 mapping = [0] * (2**m)
 
@@ -50,7 +48,10 @@ mapping[15] = 0xE
 
 
 # 3. Generate Lat & Dat  
+# SBox.initialize()
 mysbox = SBox(m, n, mapping)
+mysbox.generate_wh()
+# print mysbox.wh_matrix
 mysbox.tables()
 
 # 4. Save lat to file
@@ -65,7 +66,6 @@ fil.close()
 
 print mysbox.non_linearity()
 print mysbox.fitness()
-"""
 
 # 6. Run GA Optimization
 ga = GeneticOptimization(SBox, object_generator)

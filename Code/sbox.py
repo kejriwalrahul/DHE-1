@@ -6,6 +6,7 @@
 """
 
 import numpy as np
+import sys
 
 """
 	Class used for representing the sbox
@@ -194,6 +195,17 @@ class SBox:
 
 		return min(count, affined_count)
 
+	def nexl(self, row, op_bit_selector):
+		count = 0
+		
+		row_representation = []
+		for i in range(len(row)):
+			curr = -1 if (self.S[i] & (2**op_bit_selector)) else 1
+			row_representation.append(float(curr))
+			if curr != row[i]:
+				count += 1
+
+		print np.array(row_representation)
 	
 	"""
 		Computes non-linearity of given sbox
@@ -203,8 +215,10 @@ class SBox:
 		if self.wh_matrix == None:
 			self.generate_wh()
 
+		print self.wh_matrix
 		non_linearity = []
-		for i in range(self.n):
+		# for i in range(self.n):
+		for i in range(1):
 			min_dist = 2**self.m
 
 			for j in range(self.no_of_ip_subsets):
@@ -212,13 +226,17 @@ class SBox:
 				min_dist = min(min_dist, res)
 					
 			non_linearity.append(min_dist)
-
 		return non_linearity
 
 
 	#computes balanceness
 	def balanceness(self):
-		pass
+		output = [0 for _ in range(self.n)]
+		for x in self.S:
+			out = map(int,tuple(bin(x)[2:].zfill(8))).reverse()
+			for i in range(self.n):
+				output[i] += out[i]
+		return output
 
 
 	# get a exact copy
