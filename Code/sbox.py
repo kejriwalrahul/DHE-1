@@ -44,7 +44,7 @@ class SBox:
 		self.no_of_op_subsets = 2**n
 
 		# Store mapping
-		self.S = mapping
+		self.S = list(mapping)
 
 		# Initialize lat and dat tables
 		self.lat = None
@@ -241,7 +241,7 @@ class SBox:
 
 	# get a exact copy
 	def getCopy(self):
-		new_sbox = Sbox(self.m, self.n, self.mapping)
+		new_sbox = Sbox(self.m, self.n, self.S)
 		return new_sbox
 
 	# fitness based on non_linearity only
@@ -251,24 +251,24 @@ class SBox:
 	def mutate(self):
 		m_sbox = self.getCopy()
 		
-		x = np.random.randint(0,len(self.mapping))
-		y = np.random.randint(0,len(self.mapping))
-		m_sbox.mapping[x], m_sbox.mapping[y] = m_sbox.mapping[y], m_sbox.mapping[x]
-		
+		x = np.random.randint(0,len(self.S))
+		y = np.random.randint(0,len(self.S))
+		m_sbox.S[x], m_sbox.S[y] = m_sbox.S[y], m_sbox.S[x]
+
 		return m_sbox
 
 	def randomize(self):
-		self.mapping = numpy.random.choice(self.mapping,len(self.mapping),replace=False);
+		self.S = numpy.random.choice(self.S,len(self.S),replace=False);
 
 	#utility method for crossover
 	def swapData(self,parent, pos):
-		mem = set(self.mapping[:pos])
+		mem = set(self.S[:pos])
 		j = 0
-		for i in range(pos,len(self.mapping)):
-			while (parent.mapping[j] in mem):
+		for i in range(pos,len(self.S)):
+			while (parent.S[j] in mem):
 				j = j+1
-			self.mapping[i] = parent.mapping[j]
-			mem.add(parent.mapping[j])
+			self.S[i] = parent.S[j]
+			mem.add(parent.S[j])
 			j = j+1
 
 	#ordered crossover
@@ -276,7 +276,7 @@ class SBox:
 	def crossover(first, second):
 		child1 = first.getCopy()
 		child2 = second.getCopy()
-		pos = np.random.randint(1,len(self.mapping))
+		pos = np.random.randint(1,len(self.S))
 		child1.swapData(second,pos)
 		child2.swapData(first,pos)
 		return [child1, child2]
