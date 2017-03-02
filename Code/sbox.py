@@ -183,17 +183,16 @@ class SBox:
 	"""
 	def nl(self, row, op_bit_selector):
 		count = 0
-		
-		row_representation = []
+		affined_count = 0
+
 		for i in range(len(row)):
 			curr = -1 if (self.S[i] & (2**op_bit_selector)) else 1
-			# row_representation.append(float(curr))
 			if curr != row[i]:
 				count += 1
+			elif curr == row[i]:
+				affined_count += 1
 
-		# print np.array(row_representation)
-
-		return count
+		return min(count, affined_count)
 
 	def nexl(self, row, op_bit_selector):
 		count = 0
@@ -223,21 +222,20 @@ class SBox:
 
 			for j in range(self.no_of_ip_subsets):
 				res = self.nl(self.wh_matrix[j], i)
-				# print res
 				min_dist = min(min_dist, res)
 					
 			non_linearity.append(min_dist)
-			self.nexl(self.wh_matrix[0],i)
-		if 8 in non_linearity:
-			print non_linearity
-			print self.S
-			sys.exit(0)
 		return non_linearity
 
 
 	#computes balanceness
 	def balanceness(self):
-		pass
+		output = [0 for _ in range(self.n)]
+		for x in self.S:
+			out = map(int,tuple(bin(x)[2:].zfill(8))).reverse()
+			for i in range(self.n):
+				output[i] += out[i]
+		return output
 
 
 	# get a exact copy

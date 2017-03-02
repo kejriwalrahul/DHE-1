@@ -10,8 +10,8 @@ wh_matrix = None
 def object_generator():
 	global wh_matrix
 
-	default_m = 4
-	default_n = 4
+	default_m = 8
+	default_n = 8
 	default_mapping = range(2**default_m)
 	
 	if wh_matrix == None:
@@ -64,13 +64,12 @@ fil = open('Output/my_sbox_dat', 'w')
 mysbox.write_dat_to_file(fil)
 fil.close()
 
-mysbox.S = [9, 12, 13, 0, 7, 2, 11, 4, 1, 14, 3, 8, 5, 6, 15, 10]
 print mysbox.non_linearity()
 print mysbox.fitness()
 
 # 6. Run GA Optimization
-# ga = GeneticOptimization(SBox, object_generator)
-# best = ga.run()
-# print "best: ", best.non_linearity()
-# print "Valid: ", best.check_bijective()
-# print best.S
+ga = GeneticOptimization(SBox, object_generator)
+best = ga.run()
+print "best: ", best.non_linearity()
+print "Valid: ", best.check_bijective()
+print best.S

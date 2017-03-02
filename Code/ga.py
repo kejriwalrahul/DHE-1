@@ -36,7 +36,11 @@ class GeneticOptimization:
 		self.n = 200
 		self.k = 100
 		self.mutate_prob = 0.4
+<<<<<<< HEAD
 		self.number_of_iterations = 50
+=======
+		self.number_of_iterations = 200
+>>>>>>> b81a0f566ef7899845a3a5b3906e965b25d2e4ee
 
 
 	"""
