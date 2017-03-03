@@ -50,8 +50,9 @@ class SBox:
 		self.sequence = [None] * self.n
 		for i in range(self.n):
 			self.sequence[i] = []
-			for j in range(len(self.S)):
-				self.sequence[i].append(-1 if(self.S[i] & 2**i) else 1)
+			bit_selector = 2**i
+			for j in range(self.no_of_possible_ips):
+				self.sequence[i].append(-1 if self.S[j] & bit_selector else 1)
 
 		# Setup wh-matrix
 		self.wh_matrix = wh_matrix
@@ -285,7 +286,7 @@ class SBox:
 	# fitness based on non_linearity only
 	def fitness(self):
 		non_linearity = sorted(self.non_linearity(), key = lambda x: x)
-		
+
 		fitness = 0
 		for i in range(len(non_linearity), 1, -1):
 			fitness += non_linearity[len(non_linearity) - (i-1)] * i * 5
