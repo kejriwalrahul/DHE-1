@@ -193,18 +193,6 @@ class SBox:
 				affined_count += 1
 
 		return min(count, affined_count)
-
-	def nexl(self, row, op_bit_selector):
-		count = 0
-		
-		row_representation = []
-		for i in range(len(row)):
-			curr = -1 if (self.S[i] & (2**op_bit_selector)) else 1
-			row_representation.append(float(curr))
-			if curr != row[i]:
-				count += 1
-
-		print np.array(row_representation)
 	
 	"""
 		Computes non-linearity of given sbox
