@@ -255,9 +255,8 @@ class SBox:
 		for i in range(self.n):
 			min_dist = self.no_of_possible_ips
 
-			op_bit_selector = 2**i
 			for j in range(self.no_of_ip_subsets):
-				count = sum([(x & op_bit_selector)^y for x,y in zip(self.S, self.sequence[i])])
+				count = sum([(0 if int(x) == y else 1) for x,y in zip(self.wh_matrix[j], self.sequence[i])]) 
 				affined_count = self.no_of_possible_ips - count
 				min_dist = min(min_dist, count, affined_count)
 								
