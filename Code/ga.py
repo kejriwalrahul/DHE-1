@@ -8,7 +8,7 @@
 
 from random import shuffle, randint, random
 from numpy.random import choice
-# from tqdm import tqdm
+from tqdm import tqdm
 
 # for flushing stdout
 from sys import stdout
@@ -36,11 +36,7 @@ class GeneticOptimization:
 		self.n = 200
 		self.k = 100
 		self.mutate_prob = 0.4
-<<<<<<< HEAD
-		self.number_of_iterations = 50
-=======
-		self.number_of_iterations = 200
->>>>>>> b81a0f566ef7899845a3a5b3906e965b25d2e4ee
+		self.number_of_iterations = 100
 
 
 	"""
@@ -127,25 +123,19 @@ class GeneticOptimization:
 	"""
 		Get the ultimate best from population
 	"""
-	def best(self, population):
-		best_individual = population[0]
-		best_fitness    = best_individual.fitness()
-		
-		for i in range(1, self.n):
-			curr_fitness = population[i].fitness()
-			if curr_fitness < best_fitness:
-				best_fitness, best_individual = curr_fitness, population[i]
-
-		return best_individual
+	def best(self, population, n=1):
+		population = list(set(population))
+		population = sorted(population, key = lambda x: x.fitness())
+		return population[-n:]
 
 
 	"""
 		Run the GA Optimization
 	"""
-	def run(self):
+	def run(self, n, filname):
 		population = self.initPopulation()
 
-		for i in range(self.number_of_iterations):
+		for i in tqdm(range(self.number_of_iterations)):
 			population_fitness  	= self.getFitness(population)
 			selected_population		= self.selection(population, population_fitness)
 			offspring_population	= self.crossoverPopulation(selected_population)
@@ -154,8 +144,13 @@ class GeneticOptimization:
 			
 			population = optimal_population
 
+			if filname != None:
+				out_file = open(filname, 'w')
+				out_file.write(str(population))
+				out_file.close()
+
 			# Print best each iteration
-			print "Iteration i: ", self.best(population).fitness()
-			stdout.flush()
+			# print "Iteration i: ", self.best(population).fitness()
+			# stdout.flush()
 	
-		return self.best(population)
+		return self.best(population, n)

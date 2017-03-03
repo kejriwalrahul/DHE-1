@@ -45,6 +45,13 @@ class SBox:
 		self.wh_matrix = wh_matrix
 
 	"""
+		Allows printing sbox map from i to S(i)
+	"""
+	def __str__(self):
+		return str(self.S)
+
+
+	"""
 		Allows use of sbox object as a map from i to S(i)
 	"""
 	def __getitem__(self, i):
@@ -136,10 +143,20 @@ class SBox:
 		Generic table writer
 	"""
 	def write_to_file(self, fil, table, xmax, ymax):
+		max_val = 0
+		min_val = self.no_of_possible_ips
+
 		for i in range(xmax):
 			for j in range(ymax):
 				fil.write('{:4d},'.format(table[i][j]))
+				
+				max_val = max(max_val, table[i][j])
+				min_val = min(min_val, table[i][j])
+
 			fil.write("\n")
+
+		fil.write("\n\nMaximum: " + str(max_val))
+		fil.write("\nMinimum: "   + str(min_val))
 
 
 	"""
@@ -193,6 +210,7 @@ class SBox:
 				affined_count += 1
 
 		return min(count, affined_count)
+
 	
 	"""
 		Computes non-linearity of given sbox
@@ -202,10 +220,8 @@ class SBox:
 		if self.wh_matrix == None:
 			self.generate_wh()
 
-		print self.wh_matrix
 		non_linearity = []
-		# for i in range(self.n):
-		for i in range(1):
+		for i in range(self.n):
 			min_dist = 2**self.m
 
 			for j in range(self.no_of_ip_subsets):
@@ -234,8 +250,13 @@ class SBox:
 
 	# fitness based on non_linearity only
 	def fitness(self):
-		non_linearity = self.non_linearity()
-		return 99 * min(non_linearity) + sum(non_linearity)
+		non_linearity = sorted(self.non_linearity(), key = lambda x: x)
+		
+		fitness = 0
+		for i in range(len(non_linearity), 1, -1):
+			fitness += non_linearity[len(non_linearity) - (i-1)] * i * 5
+
+		return fitness
 
 
 	# Returns mutated copy of self
