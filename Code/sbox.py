@@ -137,10 +137,20 @@ class SBox:
 		Generic table writer
 	"""
 	def write_to_file(self, fil, table, xmax, ymax):
+		max_val = 0
+		min_val = self.no_of_possible_ips
+
 		for i in range(xmax):
 			for j in range(ymax):
 				fil.write('{:4d},'.format(table[i][j]))
+				
+				max_val = max(max_val, table[i][j])
+				min_val = min(min_val, table[i][j])
+
 			fil.write("\n")
+
+		fil.write("\n\nMaximum: " + str(max_val))
+		fil.write("\nMinimum: "   + str(min_val))
 
 
 	"""
@@ -234,8 +244,13 @@ class SBox:
 
 	# fitness based on non_linearity only
 	def fitness(self):
-		non_linearity = self.non_linearity()
-		return 99 * min(non_linearity) + sum(non_linearity)
+		non_linearity = sorted(self.non_linearity(), key = lambda x: x)
+		
+		fitness = 0
+		for i in range(len(non_linearity), 1, -1):
+			fitness += non_linearity[len(non_linearity) - (i-1)] * i * 5
+
+		return fitness
 
 
 	# Returns mutated copy of self

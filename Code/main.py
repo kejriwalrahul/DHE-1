@@ -71,7 +71,7 @@ print mysbox.fitness()
 
 # 6. Run GA Optimization
 ga = GeneticOptimization(SBox, object_generator)
-best_arr = ga.run(16)
+best_arr = ga.run(16, 'pop_file')
 for best in best_arr:
 	print "best: ", best.non_linearity()
 	print "Valid: ", best.check_bijective()

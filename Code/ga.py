@@ -124,6 +124,7 @@ class GeneticOptimization:
 		Get the ultimate best from population
 	"""
 	def best(self, population, n=1):
+		population = list(set(population))
 		population = sorted(population, key = lambda x: x.fitness())
 		return population[-n:]
 
@@ -131,7 +132,7 @@ class GeneticOptimization:
 	"""
 		Run the GA Optimization
 	"""
-	def run(self, n):
+	def run(self, n, filname):
 		population = self.initPopulation()
 
 		for i in tqdm(range(self.number_of_iterations)):
@@ -142,6 +143,11 @@ class GeneticOptimization:
 			optimal_population  	= self.optimizePopulation(population, mutated_population, population_fitness)
 			
 			population = optimal_population
+
+			if filname != None:
+				out_file = open(filname, 'w')
+				out_file.write(str(population))
+				out_file.close()
 
 			# Print best each iteration
 			# print "Iteration i: ", self.best(population).fitness()
