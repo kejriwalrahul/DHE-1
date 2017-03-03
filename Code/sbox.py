@@ -107,6 +107,7 @@ class SBox:
 			xbar = ipdiff ^ i
 			
 			opdiff = self[x] ^ self[xbar]
+			# print x, xbar, opdiff, self[x], self[xbar]
 			counts[opdiff] += 1
 
 		return counts
@@ -150,20 +151,22 @@ class SBox:
 			for j in range(ymax):
 				fil.write('{:4d},'.format(table[i][j]))
 				
-				max_val = max(max_val, table[i][j])
-				min_val = min(min_val, table[i][j])
+				if i != 0 and j != 0:
+					max_val = max(max_val, table[i][j])
+					min_val = min(min_val, table[i][j])
 
 			fil.write("\n")
 
-		fil.write("\n\nMaximum: " + str(max_val))
+		fil.write("\nMaximum: " + str(max_val))
 		fil.write("\nMinimum: "   + str(min_val))
+		return (max_val,min_val)
 
 
 	"""
 		Write the lat table of the sbox to fil
 	"""
 	def write_lat_to_file(self, fil):
-		self.write_to_file(fil, self.lat, self.no_of_ip_subsets, self.no_of_op_subsets)
+		return self.write_to_file(fil, self.lat, self.no_of_ip_subsets, self.no_of_op_subsets)
 
 
 	"""
@@ -217,7 +220,7 @@ class SBox:
 	"""
 	def non_linearity(self):
 
-		if self.wh_matrix == None:
+		if self.wh_matrix is None:
 			self.generate_wh()
 
 		non_linearity = []
@@ -236,7 +239,8 @@ class SBox:
 	def balanceness(self):
 		output = [0 for _ in range(self.n)]
 		for x in self.S:
-			out = map(int,tuple(bin(x)[2:].zfill(8))).reverse()
+			out = map(int,tuple(bin(x)[2:].zfill(8)))
+			out.reverse()
 			for i in range(self.n):
 				output[i] += out[i]
 		return output
