@@ -163,7 +163,7 @@ class GeneticOptimization:
 				out_file.close()
 
 			# Print best each iteration
-			# print "Iteration i: ", self.best(population).fitness()
-			# stdout.flush()
+			print "Iteration i: ", self.best(population)[0].fitness()
+			stdout.flush()
 	
 		return self.best(population, n)

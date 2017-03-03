@@ -161,21 +161,25 @@ class SBox:
 		for i in range(xmax):
 			for j in range(ymax):
 				fil.write('{:4d},'.format(table[i][j]))
-				
-				max_val = max(max_val, table[i][j])
-				min_val = min(min_val, table[i][j])
+	
+				if i!=0 and j!=0:			
+					max_val = max(max_val, table[i][j])
+					min_val = min(min_val, table[i][j])
 
 			fil.write("\n")
 
-		fil.write("\n\nMaximum: " + str(max_val))
+		fil.write("\nMaximum: " + str(max_val))
 		fil.write("\nMinimum: "   + str(min_val))
+		return max_val, min_val
 
 
 	"""
 		Write the lat table of the sbox to fil
 	"""
 	def write_lat_to_file(self, fil):
-		self.write_to_file(fil, self.lat, self.no_of_ip_subsets, self.no_of_op_subsets)
+		max_val, min_val = self.write_to_file(fil, self.lat, self.no_of_ip_subsets, self.no_of_op_subsets)
+		bias = (max(abs(2**(self.m-1) - max_val), abs(2**(self.m-1) - min_val)) * 1.0) / (2**self.m)
+		print "\nBias: " + str(bias)
 
 
 	"""
@@ -183,6 +187,35 @@ class SBox:
 	"""
 	def write_dat_to_file(self, fil):
 		self.write_to_file(fil, self.dat, self.no_of_ip_subsets, self.no_of_op_subsets)
+
+
+	"""
+		Generate report
+	"""
+	def write_report(filname):
+		fil = open('filname', 'w')
+
+		fil.write('Type:\n')
+		fil.write(str(self.m) + 'x' + str(self.n) + '\n\n')
+
+		fil.write('Mapping:\n')
+		fil.write(str([(x%(2**self.n)) for x in self.S]) + "\n\n")
+
+		fil.write('Balancedness:\n')
+		fil.write(str(self.balanceness()) + "\n\n")
+
+		fil.write('Non-Linearity:\n')
+		fil.write(str(self.balanceness()) + "\n\n")
+
+		self.tables()
+
+		fil.write('Linear Approximation Table (LAT):\n')
+		self.write_lat_to_file(fil)
+		fil.write('\n\n')
+
+		fil.write('Differential Approximation Table (DAT):\n')
+		self.write_dat_to_file(fil)
+		fil.write('\n\n')
 
 
 	"""
@@ -222,8 +255,9 @@ class SBox:
 		for i in range(self.n):
 			min_dist = self.no_of_possible_ips
 
+			op_bit_selector = 2**i
 			for j in range(self.no_of_ip_subsets):
-				count = sum([x^y for x,y in zip(self.S, self.sequence[i])])
+				count = sum([(x & op_bit_selector)^y for x,y in zip(self.S, self.sequence[i])])
 				affined_count = self.no_of_possible_ips - count
 				min_dist = min(min_dist, count, affined_count)
 								
