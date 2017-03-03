@@ -8,6 +8,9 @@
 import numpy as np
 import sys
 
+import time
+current_milli_time = lambda: int(round(time.time() * 1000))
+
 """
 	Class used for representing the sbox
 """
@@ -40,6 +43,16 @@ class SBox:
 		# Initialize lat and dat tables
 		self.lat = None
 		self.dat = None	
+
+		self.obj_non_linearity = None
+
+		# Setup sequences
+		self.sequence = [None] * self.n
+		for i in range(self.n):
+			self.sequence[i] = []
+			bit_selector = 2**i
+			for j in range(self.no_of_possible_ips):
+				self.sequence[i].append(-1 if self.S[j] & bit_selector else 1)
 
 		# Setup wh-matrix
 		self.wh_matrix = wh_matrix
@@ -149,21 +162,25 @@ class SBox:
 		for i in range(xmax):
 			for j in range(ymax):
 				fil.write('{:4d},'.format(table[i][j]))
-				
-				max_val = max(max_val, table[i][j])
-				min_val = min(min_val, table[i][j])
+	
+				if i!=0 and j!=0:			
+					max_val = max(max_val, table[i][j])
+					min_val = min(min_val, table[i][j])
 
 			fil.write("\n")
 
-		fil.write("\n\nMaximum: " + str(max_val))
+		fil.write("\nMaximum: " + str(max_val))
 		fil.write("\nMinimum: "   + str(min_val))
+		return max_val, min_val
 
 
 	"""
 		Write the lat table of the sbox to fil
 	"""
 	def write_lat_to_file(self, fil):
-		self.write_to_file(fil, self.lat, self.no_of_ip_subsets, self.no_of_op_subsets)
+		max_val, min_val = self.write_to_file(fil, self.lat, self.no_of_ip_subsets, self.no_of_op_subsets)
+		bias = (max(abs(2**(self.m-1) - max_val), abs(2**(self.m-1) - min_val)) * 1.0) / (2**self.m)
+		print "\nBias: " + str(bias)
 
 
 	"""
@@ -171,6 +188,35 @@ class SBox:
 	"""
 	def write_dat_to_file(self, fil):
 		self.write_to_file(fil, self.dat, self.no_of_ip_subsets, self.no_of_op_subsets)
+
+
+	"""
+		Generate report
+	"""
+	def write_report(filname):
+		fil = open('filname', 'w')
+
+		fil.write('Type:\n')
+		fil.write(str(self.m) + 'x' + str(self.n) + '\n\n')
+
+		fil.write('Mapping:\n')
+		fil.write(str([(x%(2**self.n)) for x in self.S]) + "\n\n")
+
+		fil.write('Balancedness:\n')
+		fil.write(str(self.balanceness()) + "\n\n")
+
+		fil.write('Non-Linearity:\n')
+		fil.write(str(self.balanceness()) + "\n\n")
+
+		self.tables()
+
+		fil.write('Linear Approximation Table (LAT):\n')
+		self.write_lat_to_file(fil)
+		fil.write('\n\n')
+
+		fil.write('Differential Approximation Table (DAT):\n')
+		self.write_dat_to_file(fil)
+		fil.write('\n\n')
 
 
 	"""
@@ -194,41 +240,30 @@ class SBox:
 
 		self.wh_matrix = wh_matrix
 
-
-	"""
-		Compute hamming wt wrt single linear function
-	"""
-	def nl(self, row, op_bit_selector):
-		count = 0
-		affined_count = 0
-
-		for i in range(len(row)):
-			curr = -1 if (self.S[i] & (2**op_bit_selector)) else 1
-			if curr != row[i]:
-				count += 1
-			elif curr == row[i]:
-				affined_count += 1
-
-		return min(count, affined_count)
-
 	
 	"""
 		Computes non-linearity of given sbox
 	"""
 	def non_linearity(self):
 
+		if self.obj_non_linearity:
+			return self.obj_non_linearity
+
 		if self.wh_matrix == None:
 			self.generate_wh()
 
 		non_linearity = []
 		for i in range(self.n):
-			min_dist = 2**self.m
+			min_dist = self.no_of_possible_ips
 
 			for j in range(self.no_of_ip_subsets):
-				res = self.nl(self.wh_matrix[j], i)
-				min_dist = min(min_dist, res)
-					
+				count = sum([(0 if int(x) == y else 1) for x,y in zip(self.wh_matrix[j], self.sequence[i])]) 
+				affined_count = self.no_of_possible_ips - count
+				min_dist = min(min_dist, count, affined_count)
+								
 			non_linearity.append(min_dist)
+
+		self.obj_non_linearity = non_linearity 
 		return non_linearity
 
 
@@ -251,7 +286,7 @@ class SBox:
 	# fitness based on non_linearity only
 	def fitness(self):
 		non_linearity = sorted(self.non_linearity(), key = lambda x: x)
-		
+
 		fitness = 0
 		for i in range(len(non_linearity), 1, -1):
 			fitness += non_linearity[len(non_linearity) - (i-1)] * i * 5
