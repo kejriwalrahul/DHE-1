@@ -44,6 +44,12 @@ class SBox:
 		# Setup wh-matrix
 		self.wh_matrix = wh_matrix
 
+	"""
+		Allows printing sbox map from i to S(i)
+	"""
+	def __str__(self):
+		return str(self.S)
+
 
 	"""
 		Allows use of sbox object as a map from i to S(i)
