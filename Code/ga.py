@@ -9,10 +9,12 @@
 from random import shuffle, randint, random
 from numpy.random import choice
 from tqdm import tqdm
+import time
 
 # for flushing stdout
 from sys import stdout
 
+current_milli_time = lambda: int(round(time.time() * 1000))
 
 """
 	Class that runs generic Genetic Optimization
@@ -136,11 +138,22 @@ class GeneticOptimization:
 		population = self.initPopulation()
 
 		for i in tqdm(range(self.number_of_iterations)):
+			time_old = current_milli_time()
 			population_fitness  	= self.getFitness(population)
+			print current_milli_time() - time_old
+			time_old = current_milli_time()
 			selected_population		= self.selection(population, population_fitness)
+			print current_milli_time() - time_old
+			time_old = current_milli_time()
 			offspring_population	= self.crossoverPopulation(selected_population)
+			print current_milli_time() - time_old
+			time_old = current_milli_time()
 			mutated_population		= self.mutate(offspring_population)
+			print current_milli_time() - time_old
+			time_old = current_milli_time()
 			optimal_population  	= self.optimizePopulation(population, mutated_population, population_fitness)
+			print current_milli_time() - time_old
+			time_old = current_milli_time()
 			
 			population = optimal_population
 

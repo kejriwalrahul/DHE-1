@@ -8,6 +8,9 @@
 import numpy as np
 import sys
 
+import time
+current_milli_time = lambda: int(round(time.time() * 1000))
+
 """
 	Class used for representing the sbox
 """
@@ -40,6 +43,15 @@ class SBox:
 		# Initialize lat and dat tables
 		self.lat = None
 		self.dat = None	
+
+		self.obj_non_linearity = None
+
+		# Setup sequences
+		self.sequence = [None] * self.n
+		for i in range(self.n):
+			self.sequence[i] = []
+			for j in range(len(self.S)):
+				self.sequence[i].append(-1 if(self.S[i] & 2**i) else 1)
 
 		# Setup wh-matrix
 		self.wh_matrix = wh_matrix
@@ -194,41 +206,30 @@ class SBox:
 
 		self.wh_matrix = wh_matrix
 
-
-	"""
-		Compute hamming wt wrt single linear function
-	"""
-	def nl(self, row, op_bit_selector):
-		count = 0
-		affined_count = 0
-
-		for i in range(len(row)):
-			curr = -1 if (self.S[i] & (2**op_bit_selector)) else 1
-			if curr != row[i]:
-				count += 1
-			elif curr == row[i]:
-				affined_count += 1
-
-		return min(count, affined_count)
-
 	
 	"""
 		Computes non-linearity of given sbox
 	"""
 	def non_linearity(self):
 
+		if self.obj_non_linearity:
+			return self.obj_non_linearity
+
 		if self.wh_matrix == None:
 			self.generate_wh()
 
 		non_linearity = []
 		for i in range(self.n):
-			min_dist = 2**self.m
+			min_dist = self.no_of_possible_ips
 
 			for j in range(self.no_of_ip_subsets):
-				res = self.nl(self.wh_matrix[j], i)
-				min_dist = min(min_dist, res)
-					
+				count = sum([x^y for x,y in zip(self.S, self.sequence[i])])
+				affined_count = self.no_of_possible_ips - count
+				min_dist = min(min_dist, count, affined_count)
+								
 			non_linearity.append(min_dist)
+
+		self.obj_non_linearity = non_linearity 
 		return non_linearity
 
 
