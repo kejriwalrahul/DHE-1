@@ -6,17 +6,14 @@
 """
 
 """
-	Static Cipher Class modelling one structure of the dynamic cipher 
-	containing differenct types of rounds as specified in self.round_pattern
+	Static Cipher Class modelling one round of the dynamic cipher 
 """
-class FHE:
+class FHE_Round:
 
 	"""
 		Initializes current structure
 	"""
 	def __init__(self, round_pattern, exp, conf, perm):
-		self.round_pattern = round_pattern
-
 		self.expansion 	= exp
 		self.confusion 	= conf
 		self.permutation= perm
