@@ -14,11 +14,12 @@ def find_trail(noOfRound,totalSbox):
 
 	prevType = sboxType
 	data = [row,col,sbno,sboxType]
-	activeInput = inputToIndex(data[0],data[2],sboxType)
-	activeOutput = inputToIndex(data[1],data[2],sboxType)
+	activeInput = inputToIndex([data],sboxType,True)
+	activeOutput = inputToIndex([data],sboxType)
 	result.append([activeInput,activeOutput])
 	outList = permute(activeOutput,sboxType)
-	
+	activeOuts = activeOutput
+
 	for rno in range(2,noOfRound+1):
 		data = []
 		nextType = getType(rno)	#sbox type
@@ -32,17 +33,32 @@ def find_trail(noOfRound,totalSbox):
 			for j in range(1,lat[row]):
 				if (abs(lat[row][col]-8) < abs(lat[row][j]-8)):
 					col = j
+			data.append([row,col,val[2]],val[3])
 		
-		activeInput = inputToIndex(data[0],data[2],nextType)
-		activeOutput = inputToIndex(data[1],data[2],nextType)
+		activeInput = inputToIndex(data,nextType,True)
+		activeOutput = inputToIndex(data,nextType)
+		
+		if (prevType == "spn" and nextType != prevType):
+			for x in range(0,len(activeOuts)):
+				if (x <= 64):
+					activeOutput.append(x)
+				else:
+					break
+			activeOutput.sort()
+
 		result.append([activeInput,activeOutput])
 		outList = permute(activeOutput,nextType)
 		prevType = nextType
+		activeOuts = activeOutput
 	return result
+
+#returns lat
+def getLat(sboxNo, sboxType):
+	pass
 
 #return the type of network in the given round
 def getType(roundNo):
-	return "spn"
+	pass
 
 def permute(indexList, rType):
 	val = []
@@ -55,24 +71,30 @@ def permute(indexList, rType):
 		permTable = getPermutationTable("fiestel")
 		for x in indexList:
 			outList.append(permTable[i])
-	outList = sort(outList)
+	outList.sort()
 	return outList
 
 
 #takes an input bit, sbox no. and sbox type
 #convert it to index, and return the list containing the indices
-def inputToIndex(val,sbno,rType):
+def inputToIndex(data,rType,inputsum = False):
 	iList = []
-	pad = 0
+	multiplier = 6
 	if (rType == "spn"):
-		pad = (sbno)*8
-	else:
-		pad = (sbno)*6
+		multiplier = 8
 
-	for i in range(1,9):
-		if (val % 2 == 1):
-			iList.append(pad-i)
-		val = val >> 1
+	index = 0
+	if (outputsum):
+		index = 1
+
+	for row in data:	#val = [inputsum,outputsum,sboxno,sboxtype]
+		pad = row[2] * multiplier
+		val = row[index]
+		for i in range(1,9):
+			if (val % 2 == 1):
+				iList.append(pad-i)
+			val = val >> 1
+	iList.sort()
 	return iList
 
 #convert list of indices to sbox inputs based on
@@ -114,7 +136,7 @@ def convertIndexTypes(vals,fromType,toType):
 	if (fromType == "spn"):
 		for x in vals:
 			p = x - 64
-			if (p > 0)
+			if (p > 0):
 				data.append(p)
 	else:
 		for x in vals:
