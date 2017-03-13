@@ -54,7 +54,7 @@ class FHE_Round:
 			
 			for j in range(sbox_ip_size):
 				curr_activated_bits *= 2
-				if (i*sbox_ip_size + j) in ip_set:
+				if (i*sbox_ip_size + j + 1) in ip_set:
 					curr_activated_bits += 1 
 
 			activated_ips.append(curr_activated_bits)
@@ -62,9 +62,13 @@ class FHE_Round:
 		# Determine confusion possibilities with non-zero bias
 		confusion_possibilities = []
 		for i in range(self.no_of_sbox):
-			this_sbox = self.confusion[i] 
+			this_sbox = self.confusion[i]
 			this_sbox_possibilities = []
 			
+			if activated_ips[i] == 0:
+				confusion_possibilities.append(this_sbox_possibilities)
+				continue
+
 			if trail_type == 'lat':
 				lat_row = this_sbox.lat[activated_ips[i]]
 				for j, cell in enumerate(lat_row):
