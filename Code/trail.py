@@ -8,7 +8,7 @@ def find_trail(noOfRound,totalSbox):
 		lat = getLat(k,sboxType)
 		
 		for i in range(1,len(lat)):
-			for j in range(1,lat[i]):
+			for j in range(1,len(lat[i])):
 				if (abs(lat[row][col]-8) < abs(lat[i][j]-8)):
 					row, col, sbno = i, j, k
 
@@ -19,7 +19,7 @@ def find_trail(noOfRound,totalSbox):
 	result.append([activeInput,activeOutput])
 	outList = permute(activeOutput,sboxType)
 	activeOuts = activeOutput
-
+	
 	for rno in range(2,noOfRound+1):
 		data = []
 		nextType = getType(rno)	#sbox type
@@ -30,10 +30,10 @@ def find_trail(noOfRound,totalSbox):
 			row = val[0]
 			col = 1
 
-			for j in range(1,lat[row]):
+			for j in range(1,len(lat[row])):
 				if (abs(lat[row][col]-8) < abs(lat[row][j]-8)):
 					col = j
-			data.append([row,col,val[2]],val[3])
+			data.append([row,col,val[2],val[3]])
 		
 		activeInput = inputToIndex(data,nextType,True)
 		activeOutput = inputToIndex(data,nextType)
@@ -52,13 +52,39 @@ def find_trail(noOfRound,totalSbox):
 		activeOuts = activeOutput
 	return result
 
+#returns permutation table
+def getPermutationTable(stype):
+	file = open("../Output/permutation.dat","r")
+	if (stype == "fiestel"):
+		file.readline()
+	val = file.readline()
+	tab = map(int, val.rstrip().split())
+	return tab
+
+
 #returns lat
 def getLat(sboxNo, sboxType):
-	pass
+	if (sboxType == "spn"):
+		file = open("../Output/sbox_8x8."+str(sboxNo-1),"r")
+		for _ in range(0,9):
+			file.readline()
+		lat = []
+		for i in range(0,256):
+			val = file.readline()
+			lat.append(map(int,val.strip().rstrip(",").split(", ")))
+		return lat
+	else:
+		file = open("../Output/sbox_6x4."+str(sboxNo-1),"r")
+		for _ in range(0,9):
+			file.readline()
+		lat = []
+		for i in range(0,64):
+			val = file.readline()
+			lat.append(map(int,val.strip().rstrip(",").split(", ")))
 
 #return the type of network in the given round
 def getType(roundNo):
-	pass
+	return "spn"
 
 def permute(indexList, rType):
 	val = []
@@ -83,9 +109,9 @@ def inputToIndex(data,rType,inputsum = False):
 	if (rType == "spn"):
 		multiplier = 8
 
-	index = 0
-	if (outputsum):
-		index = 1
+	index = 1
+	if (inputsum):
+		index = 0
 
 	for row in data:	#val = [inputsum,outputsum,sboxno,sboxtype]
 		pad = row[2] * multiplier
@@ -105,26 +131,29 @@ def indicesToInputs(vals,fromType,toType):
 		vals = convertIndexTypes(vals,fromType,toType)
 
 	if (toType == "spn"):
-		rno = (vals[0] / 8) + 1
-		index = (vals[0]+7) % 8
+		sbno = ((vals[0]-1) / 8) + 1
+		index = 0x1 << ((vals[0]+7) % 8)
+		
 		for x in range(1,len(vals)):
-			temp = (x/8) + 1
-			if (temp != rno):
-				oList.append([index,0,rno,"spn"])
-			else:
-				index = index ^ ((val[x]+7) % 8)
-		oList.append([index,0,rno,"spn"])
+			temp = ((vals[x]-1)/8) + 1
+			if (temp != sbno):
+				oList.append([index,0,sbno,"spn"])
+				index = 0x0
+				sbno = temp
+			index = index ^ (0x1 << ((vals[x]+7) % 8))
+		oList.append([index,0,sbno,"spn"])
 
 	else:
-		rno = (vals[0]/6) + 1
-		index = (vals[0]+5) % 6
+		sbno = ((vals[0]-1)/6) + 1
+		index = 0x1 << ((vals[0]+5) % 6)
 		for x in range(1,len(vals)):
-			temp = (x/6) + 1
+			temp = ((vals[x]-1)/6) + 1
 			if (temp != rno):
-				oList.append([index,0,rno,"fiestel"])
-			else:
-				index = index ^ ((val[x]+5)%6)
-		oList.append([index,0,rno,"fiestel"])
+				oList.append([index,0,sbno,"fiestel"])
+				sbno = temp
+				index = 0
+			index = index ^ (0x1 << ((vals[x]+5)%6))
+		oList.append([index,0,sbno,"fiestel"])
 	return oList
 
 #convert from one type of indices to other
@@ -142,3 +171,8 @@ def convertIndexTypes(vals,fromType,toType):
 		for x in vals:
 			data.append(x+64)
 	return data
+
+#run trails
+# rs = find_trail(4,16)
+# for x in rs:
+# 	print x
