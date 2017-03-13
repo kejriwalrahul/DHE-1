@@ -1,22 +1,32 @@
 def find_trail(noOfRound,totalSbox):
 	result = []
 	sboxType = "spn"
+	#sboxType = "spn"
 	sbno, row, col = 1, 1, 1
+	totalBias = 1.0
+	lat = []
+	#seq = [1,2,4,8,16,32,64,128]
+	seq = [1,2,4,8]
 
+	latsubtractor = 0x1 << (8 - 1)
+	latdivider = 0x1 << 8
 	#find first weak sbox
 	for k in range(1,totalSbox+1):
 		lat = getLat(k,sboxType)
-		
 		for i in range(1,len(lat)):
-			for j in range(1,len(lat[i])):
-				if (abs(lat[row][col]-8) < abs(lat[i][j]-8)):
+			#for j in range(1,len(lat[i])):
+			for j in seq:
+				if (abs(lat[row][col]-latsubtractor) < abs(lat[i][j]-latsubtractor)):
 					row, col, sbno = i, j, k
 
+	totalBias *= (abs(lat[row][col]-latsubtractor)/float(latdivider))
 	prevType = sboxType
 	data = [row,col,sbno,sboxType]
+	#print data
 	activeInput = inputToIndex([data],sboxType,True)
 	activeOutput = inputToIndex([data],sboxType)
 	result.append([activeInput,activeOutput])
+	#print activeOutput
 	outList = permute(activeOutput,sboxType)
 	activeOuts = activeOutput
 	
@@ -30,11 +40,13 @@ def find_trail(noOfRound,totalSbox):
 			row = val[0]
 			col = 1
 
-			for j in range(1,len(lat[row])):
-				if (abs(lat[row][col]-8) < abs(lat[row][j]-8)):
+			for j in seq:
+			#for j in range(1,len(lat[row])):
+				if (abs(lat[row][col]-latsubtractor) < abs(lat[row][j]-latsubtractor)):
 					col = j
 			data.append([row,col,val[2],val[3]])
 		
+		totalBias *= (abs(lat[row][col]-latsubtractor)/float(latdivider))
 		activeInput = inputToIndex(data,nextType,True)
 		activeOutput = inputToIndex(data,nextType)
 		
@@ -50,6 +62,9 @@ def find_trail(noOfRound,totalSbox):
 		outList = permute(activeOutput,nextType)
 		prevType = nextType
 		activeOuts = activeOutput
+
+	totalBias *= 2**(noOfRound-1)
+	print "net bias = ",totalBias
 	return result
 
 #returns permutation table
@@ -59,8 +74,23 @@ def getPermutationTable(stype):
 		file.readline()
 	val = file.readline()
 	tab = map(int, val.rstrip().split())
+	file.close()
 	return tab
 
+
+def expansion(data):
+	file = open("../Output/permutation.dat", "r")
+	file.readline()
+	file.readline()
+	val = file.readline()
+	val = map(int,val.split())
+	out = []
+	#print len(val)," val length"
+	for x in data:
+		temp = (x-1) / 48
+		out.append(temp * 48 + val[(x-1)%48])
+	file.close()
+	return out
 
 #returns lat
 def getLat(sboxNo, sboxType):
@@ -72,6 +102,7 @@ def getLat(sboxNo, sboxType):
 		for i in range(0,256):
 			val = file.readline()
 			lat.append(map(int,val.strip().rstrip(",").split(", ")))
+		file.close()
 		return lat
 	else:
 		file = open("../Output/sbox_6x4."+str(sboxNo-1),"r")
@@ -81,6 +112,8 @@ def getLat(sboxNo, sboxType):
 		for i in range(0,64):
 			val = file.readline()
 			lat.append(map(int,val.strip().rstrip(",").split(", ")))
+		file.close()
+		return lat
 
 #return the type of network in the given round
 def getType(roundNo):
@@ -96,7 +129,7 @@ def permute(indexList, rType):
 	else:
 		permTable = getPermutationTable("fiestel")
 		for x in indexList:
-			outList.append(permTable[i])
+			outList.append(permTable[x])
 	outList.sort()
 	return outList
 
@@ -105,21 +138,28 @@ def permute(indexList, rType):
 #convert it to index, and return the list containing the indices
 def inputToIndex(data,rType,inputsum = False):
 	iList = []
-	multiplier = 6
+	multiplier = 0
 	if (rType == "spn"):
 		multiplier = 8
+	elif (inputsum):
+		multiplier = 6
+	else:
+		multiplier = 4
+
 
 	index = 1
 	if (inputsum):
 		index = 0
 
-	for row in data:	#val = [inputsum,outputsum,sboxno,sboxtype]
+	for row in data:	#row = [inputsum,outputsum,sboxno,sboxtype]
 		pad = row[2] * multiplier
 		val = row[index]
 		for i in range(1,9):
 			if (val % 2 == 1):
 				iList.append(pad-i)
 			val = val >> 1
+	if (not inputsum and rType == "fiestel"):
+		iList = expansion(iList)
 	iList.sort()
 	return iList
 
@@ -173,6 +213,6 @@ def convertIndexTypes(vals,fromType,toType):
 	return data
 
 #run trails
-# rs = find_trail(4,16)
-# for x in rs:
-# 	print x
+rs = find_trail(8,16)
+for x in rs:
+	print x
