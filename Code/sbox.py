@@ -129,6 +129,8 @@ class SBox:
 		Generate the LAT for given sbox
 	"""
 	def gen_lat_table(self):	
+		if self.lat != None:
+			return
 
 		# Initialize counts
 		self.lat = [None]*(self.no_of_ip_subsets)
@@ -144,6 +146,8 @@ class SBox:
 		Generates the DAT for given sbox
 	"""
 	def gen_dat_table(self):
+		if self.dat != None:
+			return
 
 		# Initialize counts
 		self.dat = [None]*(self.no_of_ip_subsets)

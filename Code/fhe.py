@@ -15,7 +15,7 @@ class FHE_Round:
 		
 		self.confusion is a list of SBox objects
 	"""
-	def __init__(self, round_pattern, exp, conf, perm):
+	def __init__(self, exp, conf, perm):
 		self.expansion 	= exp
 		self.confusion 	= conf
 		self.permutation= perm
@@ -23,7 +23,7 @@ class FHE_Round:
 		self.no_of_sbox = len(self.confusion)
 
 		for sbox in self.confusion:
-			sbox.gen_lat_table()
+			# sbox.gen_lat_table()
 			sbox.gen_dat_table()
 
 
@@ -72,7 +72,7 @@ class FHE_Round:
 						cell_bias = cell*1.0 / this_sbox.no_of_possible_ips - 0.5 
 						this_sbox_possibilities.append( (j, cell_bias) )
 			else:
-				dat_row = this_sbox.lat[activated_ips[i]]
+				dat_row = this_sbox.dat[activated_ips[i]]
 				for j, cell in enumerate(dat_row):
 					if cell != 0:
 						prop_ratio = cell*1.0 / this_sbox.no_of_possible_ips 
@@ -89,6 +89,6 @@ class FHE_Round:
 	def permute(self, ip_set):
 		op_set = []
 		for ip in ip_set:
-			op_set.append(self.permutation.index(ip))
-
+			op_set.append(self.permutation.index(ip)+1)
+		
 		return op_set
