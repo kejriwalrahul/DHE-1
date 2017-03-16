@@ -1,12 +1,14 @@
 def find_trail(noOfRound,totalSbox):
 	result = []
 	sboxType = "spn"
+
 	#sboxType = "spn"
 	sbno, row, col = 1, 1, 1
 	totalBias = 1.0
 	lat = []
-	#seq = [1,2,4,8,16,32,64,128]
-	seq = [1,2,4,8]
+	biasCount = 1
+	# seq = [1,2,4,8,16,32,64,128]
+	# seq = [1,2,4,8]
 
 	latsubtractor = 0x1 << (8 - 1)
 	latdivider = 0x1 << 8
@@ -14,8 +16,8 @@ def find_trail(noOfRound,totalSbox):
 	for k in range(1,totalSbox+1):
 		lat = getLat(k,sboxType)
 		for i in range(1,len(lat)):
-			#for j in range(1,len(lat[i])):
-			for j in seq:
+			for j in range(1,len(lat[i])):
+			# for j in seq:
 				if (abs(lat[row][col]-latsubtractor) < abs(lat[i][j]-latsubtractor)):
 					row, col, sbno = i, j, k
 
@@ -36,17 +38,18 @@ def find_trail(noOfRound,totalSbox):
 		out = indicesToInputs(outList,prevType,nextType)
 		
 		for val in out:	#val = [inputsum,outputsum,sbox_no,sbox_type]
+			biasCount += 1
 			lat = getLat(val[2],nextType)
 			row = val[0]
 			col = 1
 
-			for j in seq:
-			#for j in range(1,len(lat[row])):
+			# for j in seq:
+			for j in range(1,len(lat[row])):
 				if (abs(lat[row][col]-latsubtractor) < abs(lat[row][j]-latsubtractor)):
 					col = j
 			data.append([row,col,val[2],val[3]])
+			totalBias *= (abs(lat[row][col]-latsubtractor)/float(latdivider))
 		
-		totalBias *= (abs(lat[row][col]-latsubtractor)/float(latdivider))
 		activeInput = inputToIndex(data,nextType,True)
 		activeOutput = inputToIndex(data,nextType)
 		
@@ -63,7 +66,7 @@ def find_trail(noOfRound,totalSbox):
 		prevType = nextType
 		activeOuts = activeOutput
 
-	totalBias *= 2**(noOfRound-1)
+	totalBias *= (0x1 << (biasCount-1))
 	print "net bias = ",totalBias
 	return result
 
@@ -125,11 +128,11 @@ def permute(indexList, rType):
 	if (rType == "spn"):
 		permTable = getPermutationTable("spn")
 		for x in indexList:
-			outList.append(permTable[x])
+			outList.append(permTable[x-1])
 	else:
 		permTable = getPermutationTable("fiestel")
 		for x in indexList:
-			outList.append(permTable[x])
+			outList.append(permTable[x-1])
 	outList.sort()
 	return outList
 
@@ -154,7 +157,7 @@ def inputToIndex(data,rType,inputsum = False):
 	for row in data:	#row = [inputsum,outputsum,sboxno,sboxtype]
 		pad = row[2] * multiplier
 		val = row[index]
-		for i in range(1,9):
+		for i in range(0,8):
 			if (val % 2 == 1):
 				iList.append(pad-i)
 			val = val >> 1
@@ -213,6 +216,6 @@ def convertIndexTypes(vals,fromType,toType):
 	return data
 
 #run trails
-rs = find_trail(8,16)
+rs = find_trail(20,16)
 for x in rs:
 	print x
