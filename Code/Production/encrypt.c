@@ -14,7 +14,7 @@ typedef struct {
 	char block[NO_OF_SBOXES];
 } StageBits;
 
-void FiestelRound(StageBits *s){
+void FiestelRound(StageBits *s, KeyType *key){
 	
 }
 
