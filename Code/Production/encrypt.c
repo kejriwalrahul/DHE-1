@@ -19,18 +19,33 @@ void FiestelRound(StageBits *s){
 }
 
 void SPNRound(StageBits *s, StageBits *key){
-	int i;
+	int i,j;
 
 	// Key Addition
 	for(i=0; i<NO_OF_SBOXES; i++)
 		s.block[i] ^= key.block[i]; 		
 
-	// Substitution
+	// Substitution Layer
 	for(i=0; i<NO_OF_SBOXES; i++)
 		s.block[i] = sbox_8_8[i][s.block[i]];
 
-	// Permutation
-	StageBits new_s = 
+	// Permutation Layer
+
+	// Step-1: Create dummy result 
+	StageBits new_s = {
+		{ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 }
+	};
+
+	// Step-2: Compute actual result
+	for(i=0; i<NO_OF_SBOXES; i++){
+		for(j=0; j<8; j++){
+			int bit_no = spn_permutation[i][j]; 
+			new_s.block[i] |= s.block[bit_no / 8][bit_no % 8] << j;
+		}
+	}
+
+	// Step-3: Assign result to s
+	*s = new_s;
 }
 
 int main(int argc, char** argv){
