@@ -5,10 +5,12 @@ const int NO_OF_SBOXES = 16;
 
 // 8x8 SBoxes
 extern char sbox_8_8[NO_OF_SBOXES][256];
-extern char inv_sbox_8_8[NO_OF_SBOXES][256];
 
 // 6x4 SBoxes
 extern char sboxes_6_4[NO_OF_SBOXES][64];
+
+// SPN Permutation
+extern char spn_permutation[16][8]; 
 
 typedef struct {
 	char block[NO_OF_SBOXES];
