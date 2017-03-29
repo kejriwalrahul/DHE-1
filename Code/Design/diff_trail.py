@@ -2,6 +2,8 @@ from sbox import SBox
 from fhe import FHE_Round
 from tqdm import tqdm
 
+from trail import getLat
+
 """
 	Generates SBox objects from hard coded 6x4 mappings
 """
@@ -57,8 +59,8 @@ def getSBoxes8x8():
 	]
 
 	sboxes_8_8 = []
-	for mapping in mappings_8_8:
-		sboxes_8_8.append(SBox(8, 8, mapping))
+	for idx, mapping in enumerate(mappings_8_8):
+		sboxes_8_8.append(SBox(8, 8, mapping, getLat(idx+1, "spn")))
 
 	return sboxes_8_8
 
@@ -137,6 +139,7 @@ def getWeakestTrail(round_pattern, ip, debug=False):
 	
 	# Select initial ip_bits
 	ip_bits = ip
+	ip_trail = [ip]
 
 	# Iterate across rounds
 	for idx, rtype in enumerate(round_pattern):
@@ -152,16 +155,34 @@ def getWeakestTrail(round_pattern, ip, debug=False):
 				if not len(sbox_possibilies):
 					continue
 
-				"""
-				filtered_list = [(x,y) for x,y in sbox_possibilies if (x==1 or x==2 or x ==4 or x==8 or x==16 or x==32 or x==64 or x==128)]
-				if debug:
-					print filtered_list
-				if not len(filtered_list):
-					return 0
-				"""
 				filtered_list = sbox_possibilies
 
-				sorted(filtered_list, lambda x,y: -1 if x[1] < y[1] else 0 if x[1] == y[1] else 1)
+				round_no = i
+				def comparison(x, y):
+					i = round_no
+					
+					x_next = spn_round.permute([j + i*8 + 1 for j, ch in enumerate("{0:08b}".format(x[0])) if ch=='1'])
+					y_next = spn_round.permute([j + i*8 + 1 for j, ch in enumerate("{0:08b}".format(y[0])) if ch=='1'])
+					
+					x_actives = [len([1 for j in range(8) if i*8 + j+ 1 in x_next])==0 for i in range(16)].count(False)
+					y_actives = [len([1 for j in range(8) if i*8 + j+ 1 in y_next])==0 for i in range(16)].count(False)
+
+					x_score = x[1] + (16 - x_actives)
+					y_score = y[1] + (16 - y_actives)
+
+					# x_score = x[1]
+					# y_score = y[1]
+
+					if x_score < y_score:
+						return -1
+					elif x_score == y_score:
+						return 0
+					else:
+						return 1
+
+				filtered_list = sorted(filtered_list, comparison)
+				# print filtered_list
+				# raw_input()
 				if debug:
 					print "Best confusion possibility: ", filtered_list[-1], " at round ", idx, " sbox #", i
 				net_bias *= filtered_list[-1][1]
@@ -172,6 +193,9 @@ def getWeakestTrail(round_pattern, ip, debug=False):
 				print "Permuted op bits: ", spn_round.permute(ip_bits)
 			ip_bits = spn_round.permute(ip_bits)
 
+			print net_bias
+			ip_trail.append(ip_bits)		
+
 		# Computation for Fiestel rounds
 		elif rtype == 'fiestel':
 			
@@ -180,15 +204,19 @@ def getWeakestTrail(round_pattern, ip, debug=False):
 		else:
 			return None
 
-	return net_bias
+	return net_bias, ip_trail
 
 def weakestTrailWrapper(debug):
 	max_bias = 0
+	best_trail = None
 	for i in tqdm(range(1, 129)):
-		bias = getWeakestTrail(['spn']*8, [i], debug)
+		bias, trail = getWeakestTrail(['spn']*20, [i], debug)
+		if bias >= max_bias:
+			best_trail = trail
 		max_bias = max(max_bias, bias)
-		print "At initial ip_diff = {0:3}, bias = {1}".format(i, bias)
+		# print "At initial ip_diff = {0:3}, bias = {1}".format(i, bias)
 
+	print best_trail
 	return max_bias
 
 mb = weakestTrailWrapper(False)

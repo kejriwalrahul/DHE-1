@@ -35,3 +35,5 @@
 # Python files
 *.pyc
 Code/*.pyc
+
+*.out

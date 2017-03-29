@@ -24,7 +24,7 @@ class SBox:
 	
 		mapping = List of 2**m (rows) of form of op for the ith input
 	"""
-	def __init__(self, m, n, mapping, wh_matrix = None):
+	def __init__(self, m, n, mapping, wh_matrix = None, lat = None):
 		# Store sbox dimensions
 		self.m = m
 		self.n = n
@@ -41,7 +41,7 @@ class SBox:
 		self.S = list(mapping)
 
 		# Initialize lat and dat tables
-		self.lat = None
+		self.lat = lat
 		self.dat = None	
 
 		self.obj_non_linearity = None
