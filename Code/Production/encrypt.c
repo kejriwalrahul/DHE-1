@@ -22,21 +22,20 @@ void SPNRound(StageBits *s, StageBits *key){
 	int i;
 
 	// Key Addition
-	for(i=0; i<NO_OF_SBOXES; i++){
-		
-	}
+	for(i=0; i<NO_OF_SBOXES; i++)
+		s.block[i] ^= key.block[i]; 		
 
 	// Substitution
+	for(i=0; i<NO_OF_SBOXES; i++)
+		s.block[i] = sbox_8_8[i][s.block[i]];
 
 	// Permutation
+	StageBits new_s = 
 }
 
 int main(int argc, char** argv){
-
 	// Test Vector
 	StageBits s = { {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16} };
-
-	// FiestelRound(&s);
 
 	return 0;
 }
