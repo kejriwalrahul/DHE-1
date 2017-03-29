@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "sbox.c"
+#include "config.c"
 
 const int NO_OF_SBOXES = 16;
 
@@ -15,7 +15,12 @@ typedef struct {
 } StageBits;
 
 void FiestelRound(StageBits *s, KeyType *key){
-	
+	char rightHalf[8];
+	char ch;
+	int i;
+	for (i=0; i<64; ++i) {
+		rightHalf[i] = 
+	}
 }
 
 void SPNRound(StageBits *s, StageBits *key){
