@@ -5,4 +5,4 @@ all: config.c helper.h
 	# gcc decrypt.c -o fhe_decrypt
 
 clean:
-	rm -f *.out *.o bin/*
+	rm -f *.out *.o bin/* fhe_decrypt fhe_encrypt
