@@ -3,7 +3,7 @@
 #include "config.c"
 
 #define NO_OF_SBOXES 16
-#define NO_OF_ROUNDS 20
+#define NO_OF_ROUNDS 4
 
 // 8x8 SBoxes
 extern unsigned char sbox_8_8[NO_OF_SBOXES][256];
@@ -179,8 +179,8 @@ int main(int argc, unsigned char** argv){
 	StageBits s = { "hello world pro!" };
 	StageBits k = { {16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1} };
 	// char rounds[] = {1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0};
-	char rounds[] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
-
+	// char rounds[] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+	char rounds[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 	StageBits **key_arr = trivial_key_expansion(&k);
 
 	/*

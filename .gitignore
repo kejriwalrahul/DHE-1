@@ -37,3 +37,5 @@
 Code/*.pyc
 
 *.out
+fhe_encrypt
+fhe_decrypt
