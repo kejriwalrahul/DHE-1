@@ -15,12 +15,34 @@ void xor_stage_bits(StageBits* xor_to, StageBits* xor_from){
 	}
 }
 
+char* rounds_structure(StageBits *key){
+	int i;
+	char* res = malloc(sizeof(char)*16);
+	
+	for(i=0; i<NO_OF_SBOXES; i++)
+		res[i] = /*(key->block[i]&1)?1:0*/1;
+
+	return res;
+}
+
+char* rounds_structure_inv(StageBits *key){
+	int i;
+	char* res = malloc(sizeof(char)*16);
+	
+	for(i=0; i<NO_OF_SBOXES; i++)
+		res[NO_OF_SBOXES-1-i] = /*(key->block[i]&1)?1:0*/1;
+
+	return res;
+}
+
 void cbc_fhe_encrypt(FILE *in, FILE *out, StageBits *key){
+	int byte_count = 0;
 	int i;
 	StageBits round_bits;
 	StageBits *old_cipher = &IV;
 	StageBits **key_arr = trivial_key_expansion(key);
 	char rounds[] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+	// char *rounds = rounds_structure(key); 
 
 	while(!feof(in)){
 		memset(round_bits.block, 0, sizeof(char)*NO_OF_SBOXES);
@@ -28,30 +50,43 @@ void cbc_fhe_encrypt(FILE *in, FILE *out, StageBits *key){
 		// Read 128 bit input
 		for(i=0; i<NO_OF_SBOXES; i++){
 			fscanf(in, "%c", &round_bits.block[i]);
+			byte_count++;
 			if(feof(in))	break;
 		}
 		
 		// XOR prev cipher text
 		xor_stage_bits(&round_bits, old_cipher);
 		// Encrypt
+		// print_stage_op(&round_bits);
 		FHE_encrypt(&round_bits, key_arr, rounds);
 		// Write to file
 		for(i=0; i<NO_OF_SBOXES; i++){
 			fprintf(out, "%c", round_bits.block[i]);
 		}
+		// print_stage_op(&round_bits);
 
 		// Chain cipher text
 		*old_cipher = round_bits;
 	}
+
+	FILE *fp = fopen("fillen","w");
+	fprintf(fp, "%d\n", byte_count);
+	fclose(fp);
 }
 
 void cbc_fhe_decrypt(FILE *out, FILE *in, StageBits *key){
+	int byte_count;
+	FILE *fp = fopen("fillen","r");
+	fscanf(fp, "%d\n", &byte_count);
+	fclose(fp);
+
 	int i;
 	StageBits round_bits;
 	StageBits *old_cipher = &IV;
 	StageBits curr_cipher;
 	StageBits **key_arr = trivial_key_expansion(key);
 	char rounds[] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+	// char *rounds = rounds_structure_inv(key);
 
 	while(!feof(out)){
 		memset(round_bits.block, 0, sizeof(char)*NO_OF_SBOXES);
@@ -66,7 +101,10 @@ void cbc_fhe_decrypt(FILE *out, FILE *in, StageBits *key){
 		curr_cipher = round_bits;
 		
 		// Decrypt
+		// print_stage_op(&round_bits);
 		FHE_decrypt(&round_bits, key_arr, rounds);
+		// print_stage_op(&round_bits);
+		// printf("%s\n", round_bits.block);
 
 		// XOR prev cipher text
 		xor_stage_bits(&round_bits, old_cipher);		
@@ -74,6 +112,8 @@ void cbc_fhe_decrypt(FILE *out, FILE *in, StageBits *key){
 		// Write to file
 		for(i=0; i<NO_OF_SBOXES; i++){
 			fprintf(in, "%c", round_bits.block[i]);
+			byte_count--;
+			if(byte_count == 0) return;
 		}
 
 		*old_cipher = curr_cipher;

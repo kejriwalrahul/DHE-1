@@ -137,15 +137,15 @@ void FHE_decrypt(StageBits *out, StageBits **key_arr_inv, char rounds[NO_OF_ROUN
 	}
 }
 
-/*
-int main(int argc, unsigned char** argv){
+
+/*int main(int argc, unsigned char** argv){
 	
 	// SPN Test Vector
-	StageBits s = { 0x3b, 0xd4, 0x59, 0x6f, 0x6f, 0xb8, 0x77, 0xff, 0x50, 0xc9, 0x71, 0x3, 0x70, 0x76, 0x6e, 0x31 };
+	StageBits s = { 0x85, 0x3f, 0x91, 0x30, 0xc0, 0x2b, 0xd2, 0xe9, 0xcf, 0x2a, 0x58, 0xed, 0x2d, 0x49, 0xc2, 0x8c };
 	// StageBits s = { 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x77, 0x6e, 0x72, 0x6c, 0x64, 0x20, 0x70, 0x72, 0x6f, 0x20 };
 	StageBits k = { {16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1} };
-	// char rounds[] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
-	char rounds[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+	char rounds[] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+	// char rounds[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 	// char rounds[] = {0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1};
 
 	StageBits **key_arr = trivial_key_expansion(&k);
