@@ -137,8 +137,13 @@ void SPNRound(StageBits *s, StageBits *key){
 	// Step-2: Compute actual result
 	for(i=0; i<NO_OF_SBOXES; i++){
 		for(j=0; j<8; j++){
-			int bit_no = spn_permutation[i][j]; 
-			new_s.block[i] |= ( s->block[bit_no / 8] & (1 << (bit_no % 8)) ) << j;
+			int bit_no = spn_permutation[i][j] - 1;
+			int bit_val = (( s->block[bit_no / 8] & (1 << (bit_no % 8)) ) >> (bit_no % 8));
+
+			printf("%d\n", bit_val);
+
+			new_s.block[i] |= bit_val << j;
+			printf("%d %x\n",i, new_s.block[i]);
 		}
 	}
 
@@ -154,7 +159,8 @@ int main(int argc, char** argv){
 	SPNRound(&s, &k);
 	int i;
 	for(i=0; i<16; i++)
-		printf("%x,", s.block[i]);
+		printf("%x\t", (s.block[i])%256);
 
+	printf("\n");
 	return 0;
 }
