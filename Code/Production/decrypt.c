@@ -42,105 +42,80 @@ void SPNRoundDecrypt(StageBits *s, StageBits *key){
 }
 
 void FiestelRoundDecrypt(StageBits *s, char key[]){
-	char leftHalf[6], rightHalf[6];
-	char lch, rch, ltemp, rtemp, tempval;
 	int i, j;
 
-	unsigned char temp;
 	//swap left half with right half of cipher text
+	unsigned char temp;
 	for (i=0; i<8; i++) {
 		temp = s->block[i];
 		s->block[i] = s->block[8+i];
 		s->block[8+i] = temp;
 	}
 
-	// expansion of inputs
-	for (i=0; i<6; ++i) {
-		lch = 0;
-		rch = 0;
-		for (j=0; j<8; ++j) {
-			lch = lch  << 1;
-			rch = rch << 1;
-			tempval = expansion[i][j]-1;
-			ltemp = s->block[8+tempval/8] << (7 - tempval % 8);
-			rtemp = s->block[12+tempval/8] << (7 - tempval % 8);
-			lch = lch | (ltemp >> 7);
-			rch = rch | (rtemp >> 7);
-		}
-		leftHalf[i] = lch;
-		rightHalf[i] = rch;
+	StageBits result;
+	for(i=0; i<NO_OF_SBOXES/2; i++)
+		result.block[i] = s->block[i+NO_OF_SBOXES/2];
+	
+	// Expand Input
+	unsigned long expansionLeft = 0;
+	for(i=0; i < 48; i++){
+		int bit_no  =  64 + expansion[i] - 1;
+		int bit_val = (s->block[bit_no/8] >> (7-bit_no%8)) & 1;
+		expansionLeft |= bit_val << (47-i);
 	}
 
-	//key mixing
-	for (i=0; i<6; ++i) {
-		leftHalf[i] ^= key[i];
-		rightHalf[i] ^= key[i+6];
+	unsigned long expansionRight = 0;
+	for(i=0; i < 48; i++){
+		int bit_no  =  96 + expansion[i] - 1;
+		int bit_val = (s->block[bit_no/8] >> (7-bit_no%8)) & 1;
+		expansionRight |= bit_val << (47-i);
 	}
 
-	unsigned char out[8];
-	//substitution
-	unsigned long left, right, lpad, rpad;
-	left = 0;
-	right = 0;
-	left = leftHalf[0];
-	right = rightHalf[0];
-	for (i=1; i<6; ++i) {
-		left = (left << 8) | leftHalf[i];
-		right = (right << 8) | rightHalf[i];
-	}
-	j=42;
-	for (i=0; i<4; ++i) {
-		lpad = left & (0xffffffffffffffff >> (58-j));
-		rpad = rpad & (0xffffffffffffffff >> (58-j));
-		out[i] = (0x0f & (lpad >> j));
-		out[4+i] = (0x0f & (rpad >> j));
-		j = j-6;
-		lpad = left & (0xffffffffffffffff >> (58-j));
-		rpad = rpad & (0xffffffffffffffff >> (58-j));
-		out[i] = (out[i] << 4) | (lpad >> j);
-		out[4+i] = (out[4+i] << 4) | (rpad >> j);
-		j = j-6;
+	// XOR Key
+	for(i=0; i<NO_OF_SBOXES/2; i++)
+		expansionLeft = expansionLeft ^ (((unsigned long)(key[i] & 0x3F)) << 6*(NO_OF_SBOXES/2 -1 - i));
+
+	for(i=NO_OF_SBOXES/2,j=42; i<NO_OF_SBOXES; i++,j-=6)
+		expansionRight = expansionRight ^ (((unsigned long)(key[i] & 0x3F)) << j);
+	
+	// SBox Substitution
+	int max_offset = (NO_OF_SBOXES/2 - 1)*6;
+	for(i=0; i<NO_OF_SBOXES/4; i++){
+		s->block[8+i/2]  = 0;
+		s->block[8+i/2]  = sboxes_6_4[2*i  ][(expansionLeft >> (max_offset-6*(2*i)))  & 0x3F] << 4;
+		s->block[8+i/2] |= sboxes_6_4[2*i+1][(expansionLeft >> (max_offset-6*(2*i+1))) & 0x3F];
 	}
 
-	lpad = 0;
-	rpad = 0;
-	//permutation
-	for (i=0; i<2; ++i) {
-		for (j=0; j<16; j++) {
-			lch = out[(i<<1) + j/8] << j;
-			lch = lch >> (7-j);
-			rpad = lpad;
-			rpad = rpad << (64 - fperm[i][j]);
-			rpad = lch | (rpad >> (fperm[i][j] - 1));
-			lpad = lpad | (rpad << (fperm[i][j] - 1));
+	for(i=0; i<NO_OF_SBOXES/4; i++){
+		s->block[12+i/2]  = 0;
+		s->block[12+i/2]  = sboxes_6_4[8+2*i  ][(expansionRight >> (max_offset-6*(2*i)))  & 0x3F] << 4;
+		s->block[12+i/2] |= sboxes_6_4[8+2*i+1][(expansionRight >> (max_offset-6*(2*i+1))) & 0x3F];		
+	}
+	
+	// Permutation
+	for(i=NO_OF_SBOXES/2; i<(3*NO_OF_SBOXES)/4; i++){
+		result.block[i] = 0;
+		for(j=0; j<8; j++){
+			int bit_no  = fperm[i-8][j] - 1 + 64; 
+			int bit_val = (s->block[bit_no/8] >> (bit_no%8)) & 1;
+			result.block[i] |= bit_val << j;
 		}
 	}
-	// printf("%lu\n",lpad);
-	for (i=0; i<2; ++i) {
-		for (j=0; j<16; j++) {
-			lch = out[4+ (i<<1) + j/8] << j;
-			lch = lch >> (7-j);
-			rpad = lpad;
-			rpad = rpad << (64 - fperm[2+i][j]);
-			rpad = lch | (rpad >> (fperm[2+i][j] - 1));
-			lpad = lpad | (rpad << (fperm[2+i][j] - 1));
+
+	for(i=(3*NO_OF_SBOXES)/4; i<NO_OF_SBOXES; i++){
+		result.block[i] = 0;
+		for(j=0; j<8; j++){
+			int bit_no  = fperm[i-8][j] - 1 + 96; 
+			int bit_val = (s->block[bit_no/8] >> (bit_no%8)) & 1;
+			result.block[i] |= bit_val << j;
 		}
 	}
-	// printf("%lu\n",lpad);
-	for (i=7; i>=0; --i) {
-		out[i] = lpad;
-		lpad = lpad >> 8;
-	}
 
-	//xor lefthalf with fiestel output
-	for (i=0; i<8; ++i) {
-		out[i] ^= s->block[i];
-	}
-	for (i=0; i<8; ++i) {
-		s->block[i] = s->block[8+i];
-		s->block[8+i] = out[i];
-	}
+	// XOR Left half
+	for(i=0; i<NO_OF_SBOXES/2; i++)
+		result.block[i + NO_OF_SBOXES/2] ^= s->block[i]; 
 
+	*s = result;
 
 	for (i=0; i<8; i++) {
 		temp = s->block[i];
@@ -166,7 +141,8 @@ void FHE_decrypt(StageBits *out, StageBits **key_arr_inv, char rounds[NO_OF_ROUN
 int main(int argc, unsigned char** argv){
 	
 	// SPN Test Vector
-	StageBits s = { 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x77, 0x6e, 0x72, 0x6c, 0x64, 0x20, 0x70, 0x72, 0x6f, 0x20 };
+	StageBits s = { 0x3b, 0xd4, 0x59, 0x6f, 0x6f, 0xb8, 0x77, 0xff, 0x50, 0xc9, 0x71, 0x3, 0x70, 0x76, 0x6e, 0x31 };
+	// StageBits s = { 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x77, 0x6e, 0x72, 0x6c, 0x64, 0x20, 0x70, 0x72, 0x6f, 0x20 };
 	StageBits k = { {16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1} };
 	// char rounds[] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
 	char rounds[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
@@ -181,7 +157,7 @@ int main(int argc, unsigned char** argv){
 
 	printf("PlainText: \n");
 	print_stage_op(&s);
-
+	printf("%s\n", s.block);
 	return 0;
 }
 */
