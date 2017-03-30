@@ -144,7 +144,7 @@ void SPNRound(StageBits *s, StageBits *key){
 	for(i=0; i<NO_OF_SBOXES; i++){
 		for(j=0; j<8; j++){
 			int bit_no  = spn_permutation[i][j] - 1;
-			int bit_val = ( s->block[bit_no / 8] & (1 << (bit_no % 8)) ) >> (bit_no % 8);
+			int bit_val = ( s->block[bit_no / 8] >> (bit_no % 8)) & 1;
 			new_s.block[i] |= bit_val << j;
 		}
 	}
