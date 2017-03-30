@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "config.c"
 
-const int NO_OF_SBOXES = 16;
+#define NO_OF_SBOXES 16
 
 // 8x8 SBoxes
 extern char sbox_8_8[NO_OF_SBOXES][256];
@@ -16,6 +16,9 @@ typedef struct {
 	char block[NO_OF_SBOXES];
 } StageBits;
 
+typedef char* KeyType;
+
+/*
 void FiestelRound(StageBits *s, KeyType *key){
 	char leftHalf[6], rightHalf[6];
 	char lch, rch, ltemp, rtemp, tempval;
@@ -111,17 +114,18 @@ void FiestelRound(StageBits *s, KeyType *key){
 		s.block[8+i] = out[i];
 	}
 }
+*/
 
 void SPNRound(StageBits *s, StageBits *key){
 	int i,j;
 
 	// Key Addition
 	for(i=0; i<NO_OF_SBOXES; i++)
-		s.block[i] ^= key.block[i]; 		
+		s->block[i] ^= key->block[i]; 		
 
 	// Substitution Layer
 	for(i=0; i<NO_OF_SBOXES; i++)
-		s.block[i] = sbox_8_8[i][s.block[i]];
+		s->block[i] = sbox_8_8[i][s->block[i]];
 
 	// Permutation Layer
 
@@ -134,7 +138,7 @@ void SPNRound(StageBits *s, StageBits *key){
 	for(i=0; i<NO_OF_SBOXES; i++){
 		for(j=0; j<8; j++){
 			int bit_no = spn_permutation[i][j]; 
-			new_s.block[i] |= s.block[bit_no / 8][bit_no % 8] << j;
+			new_s.block[i] |= ( s->block[bit_no / 8] & (1 << (bit_no % 8)) ) << j;
 		}
 	}
 
@@ -145,6 +149,12 @@ void SPNRound(StageBits *s, StageBits *key){
 int main(int argc, char** argv){
 	// Test Vector
 	StageBits s = { {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16} };
+	StageBits k = { {16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1} };
+
+	SPNRound(&s, &k);
+	int i;
+	for(i=0; i<16; i++)
+		printf("%x,", s.block[i]);
 
 	return 0;
 }
