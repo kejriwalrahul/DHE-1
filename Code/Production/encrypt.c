@@ -4,24 +4,24 @@
 #define NO_OF_SBOXES 16
 
 // 8x8 SBoxes
-extern char sbox_8_8[NO_OF_SBOXES][256];
+extern unsigned char sbox_8_8[NO_OF_SBOXES][256];
 
 // 6x4 SBoxes
-extern char sboxes_6_4[NO_OF_SBOXES][64];
+extern unsigned char sboxes_6_4[NO_OF_SBOXES][64];
 
 // SPN Permutation
-extern char spn_permutation[16][8]; 
+extern unsigned char spn_permutation[16][8]; 
 
 typedef struct {
-	char block[NO_OF_SBOXES];
+	unsigned char block[NO_OF_SBOXES];
 } StageBits;
 
-typedef char* KeyType;
+typedef unsigned char* KeyType;
 
 /*
 void FiestelRound(StageBits *s, KeyType *key){
-	char leftHalf[6], rightHalf[6];
-	char lch, rch, ltemp, rtemp, tempval;
+	unsigned char leftHalf[6], rightHalf[6];
+	unsigned char lch, rch, ltemp, rtemp, tempval;
 	int i, j;
 
 	// expansion of inputs
@@ -47,7 +47,7 @@ void FiestelRound(StageBits *s, KeyType *key){
 		rightHalf[i] ^= key[i+6]
 	}
 
-	char out[8];
+	unsigned char out[8];
 	//substitution
 	unsigned long left, right, lpad, rpad;
 	left = 0;
@@ -151,7 +151,7 @@ void SPNRound(StageBits *s, StageBits *key){
 	*s = new_s;
 }
 
-int main(int argc, char** argv){
+int main(int argc, unsigned char** argv){
 	// Test Vector
 	StageBits s = { {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16} };
 	StageBits k = { {16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1} };
@@ -159,7 +159,7 @@ int main(int argc, char** argv){
 	SPNRound(&s, &k);
 	int i;
 	for(i=0; i<16; i++)
-		printf("%x\t", (s.block[i])%256);
+		printf("%x\t", (s.block[i]));
 
 	printf("\n");
 	return 0;

@@ -1,19 +1,19 @@
 #include <stdio.h>
 #include "config.c"
 
-const int NO_OF_SBOXES = 16;
+#define NO_OF_SBOXES 16
 
 // 8x8 SBoxes
-extern char inv_sbox_8_8[NO_OF_SBOXES][256];
+extern unsigned char inv_sbox_8_8[NO_OF_SBOXES][256];
 
 // 6x4 SBoxes
-extern char sboxes_6_4[NO_OF_SBOXES][64];
+extern unsigned char sboxes_6_4[NO_OF_SBOXES][64];
 
 // Inverse SPN Permutation
-extern char inv_spn_permutation[16][8]; 
+extern unsigned char inv_spn_permutation[NO_OF_SBOXES][8]; 
 
 typedef struct {
-	char block[NO_OF_SBOXES];
+	unsigned char block[NO_OF_SBOXES];
 } StageBits;
 
 void SPNRound(StageBits *s, StageBits *key){
@@ -30,7 +30,7 @@ void SPNRound(StageBits *s, StageBits *key){
 	for(i=0; i<NO_OF_SBOXES; i++){
 		for(j=0; j<8; j++){
 			int bit_no = inv_spn_permutation[i][j]; 
-			new_s.block[i] |= s.block[bit_no / 8][bit_no % 8] << j;
+			new_s.block[i] |= ((s->block[bit_no / 8] & (1<<(bit_no % 8)) ) >> (bit_no % 8)) << j;
 		}
 	}
 
@@ -39,16 +39,17 @@ void SPNRound(StageBits *s, StageBits *key){
 
 	// Inverse Substitution Layer
 	for(i=0; i<NO_OF_SBOXES; i++)
-		s.block[i] = inv_sbox_8_8[i][s.block[i]];
+		s->block[i] = inv_sbox_8_8[i][s->block[i]];
 
 	// Key Addition
 	for(i=0; i<NO_OF_SBOXES; i++)
-		s.block[i] ^= key.block[i]; 		
+		s->block[i] ^= key->block[i]; 		
 }
 
+/*
 void FiestelRound(StageBits *s, KeyType *key){
-	char leftHalf[6], rightHalf[6];
-	char lch, rch, ltemp, rtemp, tempval;
+	unsigned char leftHalf[6], rightHalf[6];
+	unsigned char lch, rch, ltemp, rtemp, tempval;
 	int i, j;
 
 	// expansion of inputs
@@ -74,7 +75,7 @@ void FiestelRound(StageBits *s, KeyType *key){
 		rightHalf[i] ^= key[i+6]
 	}
 
-	char out[8];
+	unsigned char out[8];
 	//substitution
 	unsigned long left, right, lpad, rpad;
 	left = 0;
@@ -140,4 +141,19 @@ void FiestelRound(StageBits *s, KeyType *key){
 		s.block[i] = s.block[8+i];
 		s.block[8+i] = out[i];
 	}
+}
+*/
+
+int main(int argc, unsigned char** argv){
+	// Test Vector
+	StageBits s = { {0x55, 0xaa, 0x4, 0x55, 0x44, 0xaa, 0x0, 0xdd, 0x2a, 0x55, 0x0, } };
+	StageBits k = { {16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1} };
+
+	SPNRound(&s, &k);
+	int i;
+	for(i=0; i<16; i++)
+		printf("%x\t", (s.block[i]));
+
+	printf("\n");
+	return 0;
 }
