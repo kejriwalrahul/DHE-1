@@ -113,8 +113,8 @@ void FiestelRound(StageBits *s, char key[]){
 	rpad = 0;
 	//permutation
 	for (i=0; i<2; ++i) {
-		for (j=0; j<8; j++) {
-			lch = out[(i<<2) + j/8] << j;
+		for (j=0; j<16; j++) {
+			lch = out[(i<<1) + j/8] << j;
 			lch = lch >> (7-j);
 			rpad = lpad;
 			rpad = rpad << (64 - fperm[i][j]);
@@ -124,8 +124,8 @@ void FiestelRound(StageBits *s, char key[]){
 	}
 	// printf("%lu\n",lpad);
 	for (i=0; i<2; ++i) {
-		for (j=0; j<8; j++) {
-			lch = out[4+ (i<<2) + j/8] << j;
+		for (j=0; j<16; j++) {
+			lch = out[4+ (i<<1) + j/8] << j;
 			lch = lch >> (7-j);
 			rpad = lpad;
 			rpad = rpad << (64 - fperm[2+i][j]);
