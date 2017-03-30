@@ -16,10 +16,8 @@ typedef struct {
 	unsigned char block[NO_OF_SBOXES];
 } StageBits;
 
-typedef unsigned char* KeyType;
 
-/*
-void FiestelRound(StageBits *s, char **key){
+void FiestelRound(StageBits *s, char key[]){
 	char leftHalf[6], rightHalf[6];
 	char lch, rch, ltemp, rtemp, tempval;
 	int i, j;
@@ -43,14 +41,8 @@ void FiestelRound(StageBits *s, char **key){
 
 	//key mixing
 	for (i=0; i<6; ++i) {
-		
-	printf("%s\n", "test");
-	printf("%c\n", *(*key+0));
-		leftHalf[i] ^= ((char*)(*key))[i];
-		rightHalf[i] ^= (char)(*key+i+6);
-	
-	printf("%s\n", "test");
-
+		leftHalf[i] ^= key[i];
+		rightHalf[i] ^= key[i+6];
 	}
 
 	unsigned char out[8];
@@ -66,17 +58,13 @@ void FiestelRound(StageBits *s, char **key){
 	}
 	j=42;
 	for (i=0; i<4; ++i) {
-		lpad = left << (58-j);
-		lpad = lpad >> (58-j);
-		rpad = right << (58-j);
-		rpad = rpad >> (58-j);
-		out[i] = (0x0f && (lpad >> j));
-		out[4+i] = (0x0f && (rpad >> j));
+		lpad = left & (0xffffffffffffffff >> (58-j));
+		rpad = rpad & (0xffffffffffffffff >> (58-j));
+		out[i] = (0x0f & (lpad >> j));
+		out[4+i] = (0x0f & (rpad >> j));
 		j = j-6;
-		lpad = left << (58-j);
-		lpad = lpad >> (58-j);
-		rpad = right << (58-j);
-		rpad = rpad >> (58-j);
+		lpad = left & (0xffffffffffffffff >> (58-j));
+		rpad = rpad & (0xffffffffffffffff >> (58-j));
 		out[i] = (out[i] << 4) | (lpad >> j);
 		out[4+i] = (out[4+i] << 4) | (rpad >> j);
 		j = j-6;
@@ -95,16 +83,18 @@ void FiestelRound(StageBits *s, char **key){
 			lpad = lpad | (rpad << (fperm[i][j] - 1));
 		}
 	}
-	for (i=2; i<4; ++i) {
+	// printf("%lu\n",lpad);
+	for (i=0; i<2; ++i) {
 		for (j=0; j<8; j++) {
 			lch = out[4+ (i<<2) + j/8] << j;
 			lch = lch >> (7-j);
 			rpad = lpad;
-			rpad = rpad << (64 - fperm[i][j]);
-			rpad = lch | (rpad >> (fperm[i][j] - 1));
-			lpad = lpad | (rpad << (fperm[i][j] - 1));
+			rpad = rpad << (64 - fperm[2+i][j]);
+			rpad = lch | (rpad >> (fperm[2+i][j] - 1));
+			lpad = lpad | (rpad << (fperm[2+i][j] - 1));
 		}
 	}
+	// printf("%lu\n",lpad);
 	for (i=7; i>=0; --i) {
 		out[i] = lpad;
 		lpad = lpad >> 8;
@@ -114,13 +104,11 @@ void FiestelRound(StageBits *s, char **key){
 	for (i=0; i<8; ++i) {
 		out[i] ^= s->block[i];
 	}
-
 	for (i=0; i<8; ++i) {
 		s->block[i] = s->block[8+i];
 		s->block[8+i] = out[i];
 	}
 }
-*/
 
 void SPNRound(StageBits *s, StageBits *key){
 	int i,j;
@@ -150,7 +138,7 @@ void SPNRound(StageBits *s, StageBits *key){
 	}
 
 	// Step-3: Assign result to s
-	*s = new_s;
+	*s = new_s;	
 }
 
 int main(int argc, unsigned char** argv){
@@ -160,21 +148,17 @@ int main(int argc, unsigned char** argv){
 	StageBits s = { "hello world pro" };
 	StageBits k = { {16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1} };
 
-	printf("PlainText: \n");
+	char key[12] = {1,2,3,4,5,6,7,8,9,10,11,12};
+	StageBits plaintext = {{'a','b','c','d','e','f','g','h','i','j','k', 'l','m','n','o','p'}};
+	FiestelRound(&plaintext, key);
+	// // SPNRound(&s, &k);
+	int i;
 	for(i=0; i<16; i++)
-		printf("%x, ", s.block[i]);
+		printf("%u,", plaintext.block[i]);
 	printf("\n");
-	SPNRound(&s, &k);
-	printf("CipherText: \n");
-	for(i=0; i<16; i++)
-		printf("0x%x, ", s.block[i]);
-	printf("\n");
-
-	// char key[12] = {1,2,3,4,5,6,7,8,9,10,11,12};
-	// StageBits plaintext = {{'h','e','l','l','o',' ','w','o','r','l','d', '!','!','!','!','!'}};
-	// FiestelRound(&plaintext, &key);
+	// for(i=0; i<16; i++)
+	// 	printf("%u,", plaintext.block[i]);
 	
-	// char **ptr = &key;
-	// printf("%c\n", *(*ptr+1));
+	// printf("\n");
 	return 0;
 }
