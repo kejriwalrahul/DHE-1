@@ -106,8 +106,8 @@ void FiestelRoundDecrypt(StageBits *s, char key[]){
 	rpad = 0;
 	//permutation
 	for (i=0; i<2; ++i) {
-		for (j=0; j<8; j++) {
-			lch = out[(i<<2) + j/8] << j;
+		for (j=0; j<16; j++) {
+			lch = out[(i<<1) + j/8] << j;
 			lch = lch >> (7-j);
 			rpad = lpad;
 			rpad = rpad << (64 - fperm[i][j]);
@@ -117,8 +117,8 @@ void FiestelRoundDecrypt(StageBits *s, char key[]){
 	}
 	// printf("%lu\n",lpad);
 	for (i=0; i<2; ++i) {
-		for (j=0; j<8; j++) {
-			lch = out[4+ (i<<2) + j/8] << j;
+		for (j=0; j<16; j++) {
+			lch = out[4+ (i<<1) + j/8] << j;
 			lch = lch >> (7-j);
 			rpad = lpad;
 			rpad = rpad << (64 - fperm[2+i][j]);
@@ -166,9 +166,10 @@ void FHE_decrypt(StageBits *out, StageBits **key_arr_inv, char rounds[NO_OF_ROUN
 int main(int argc, unsigned char** argv){
 	
 	// SPN Test Vector
-	StageBits s = { 0x61, 0xf9, 0xfa, 0x7e, 0x1b, 0x56, 0x62, 0xab, 0xbb, 0xd4, 0xcd, 0x6f, 0x20, 0xbd, 0x4, 0x7 };
+	StageBits s = { 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x77, 0x6e, 0x72, 0x6c, 0x64, 0x20, 0x70, 0x72, 0x6f, 0x20 };
 	StageBits k = { {16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1} };
-	char rounds[] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+	// char rounds[] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+	char rounds[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 	// char rounds[] = {0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1};
 
 	StageBits **key_arr = trivial_key_expansion(&k);
