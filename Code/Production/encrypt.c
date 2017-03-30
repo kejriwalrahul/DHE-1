@@ -18,8 +18,8 @@ typedef struct {
 
 typedef char* KeyType;
 
-/*
-void FiestelRound(StageBits *s, KeyType *key){
+
+void FiestelRound(StageBits *s, char **key){
 	char leftHalf[6], rightHalf[6];
 	char lch, rch, ltemp, rtemp, tempval;
 	int i, j;
@@ -32,8 +32,8 @@ void FiestelRound(StageBits *s, KeyType *key){
 			lch = lch  << 1;
 			rch = rch << 1;
 			tempval = expansion[i][j]-1;
-			ltemp = s.block[8+tempval/8] << (7 - tempval % 8);
-			rtemp = s.block[12+tempval/8] << (7 - tempval % 8)
+			ltemp = s->block[8+tempval/8] << (7 - tempval % 8);
+			rtemp = s->block[12+tempval/8] << (7 - tempval % 8);
 			lch = lch | (ltemp >> 7);
 			rch = rch | (rtemp >> 7);
 		}
@@ -43,8 +43,14 @@ void FiestelRound(StageBits *s, KeyType *key){
 
 	//key mixing
 	for (i=0; i<6; ++i) {
-		leftHalf[i] ^= key[i];
-		rightHalf[i] ^= key[i+6]
+		
+	printf("%s\n", "test");
+	printf("%c\n", *(*key+0));
+		leftHalf[i] ^= ((char*)(*key))[i];
+		rightHalf[i] ^= (char)(*key+i+6);
+	
+	printf("%s\n", "test");
+
 	}
 
 	char out[8];
@@ -58,7 +64,7 @@ void FiestelRound(StageBits *s, KeyType *key){
 		left = (left << 8) | leftHalf[i];
 		right = (right << 8) | rightHalf[i];
 	}
-	j=42
+	j=42;
 	for (i=0; i<4; ++i) {
 		lpad = left << (58-j);
 		lpad = lpad >> (58-j);
@@ -106,15 +112,15 @@ void FiestelRound(StageBits *s, KeyType *key){
 
 	//xor lefthalf with fiestel output
 	for (i=0; i<8; ++i) {
-		out[i] ^= s.block[i];
+		out[i] ^= s->block[i];
 	}
 
 	for (i=0; i<8; ++i) {
-		s.block[i] = s.block[8+i];
-		s.block[8+i] = out[i];
+		s->block[i] = s->block[8+i];
+		s->block[8+i] = out[i];
 	}
 }
-*/
+
 
 void SPNRound(StageBits *s, StageBits *key){
 	int i,j;
@@ -151,10 +157,15 @@ int main(int argc, char** argv){
 	StageBits s = { {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16} };
 	StageBits k = { {16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1} };
 
-	SPNRound(&s, &k);
-	int i;
-	for(i=0; i<16; i++)
-		printf("%x,", s.block[i]);
+	char key[12] = {1,2,3,4,5,6,7,8,9,10,11,12};
+	StageBits plaintext = {{'h','e','l','l','o',' ','w','o','r','l','d', '!','!','!','!','!'}};
+	// FiestelRound(&plaintext, &key);
+	// // SPNRound(&s, &k);
+	// int i;
+	// for(i=0; i<16; i++)
+	// 	printf("%x,", plaintext.block[i]);
 
+	char **ptr = &key;
+	printf("%c\n", *(*ptr+1));
 	return 0;
 }
