@@ -1,9 +1,8 @@
-all: config.c
-	gcc encrypt.c -o fhe_encrypt
-	gcc decrypt.c -o fhe_decrypt
-
-sbox.c: 
-	gcc config.c
+all: config.c helper.h
+	mkdir bin/
+	gcc cbc_fhe.c -o bin/cbc_fhe
+	# gcc encrypt.c -o fhe_encrypt
+	# gcc decrypt.c -o fhe_decrypt
 
 clean:
-	rm -f *.out *.o fhe_decrypt fhe_encrypt
+	rm -f *.out *.o bin/*

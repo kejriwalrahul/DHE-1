@@ -1,31 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "config.c"
 
-#define NO_OF_SBOXES 16
-#define NO_OF_ROUNDS 20
+#include "helper.h"
 
 // 8x8 SBoxes
 extern unsigned char inv_sbox_8_8[NO_OF_SBOXES][256];
-
 // 6x4 SBoxes
 extern unsigned char sboxes_6_4[NO_OF_SBOXES][64];
-
 // Inverse SPN Permutation
 extern unsigned char inv_spn_permutation[NO_OF_SBOXES][8]; 
 
-typedef struct {
-	unsigned char block[NO_OF_SBOXES];
-} StageBits;
-
-void print_stage_op(StageBits *s){
-	int i;
-	for(i=0; i<NO_OF_SBOXES; i++)
-		printf("0x%x, ", s->block[i]);
-	printf("\n");
-}
-
-void SPNRound(StageBits *s, StageBits *key){
+void SPNRoundDecrypt(StageBits *s, StageBits *key){
 	int i,j;
 
 	// Inverse Permutation Layer
@@ -56,7 +41,7 @@ void SPNRound(StageBits *s, StageBits *key){
 		s->block[i] ^= key->block[i]; 		
 }
 
-void FiestelRound(StageBits *s, char key[]){
+void FiestelRoundDecrypt(StageBits *s, char key[]){
 	char leftHalf[6], rightHalf[6];
 	char lch, rch, ltemp, rtemp, tempval;
 	int i, j;
@@ -170,26 +155,14 @@ void FHE_decrypt(StageBits *out, StageBits **key_arr_inv, char rounds[NO_OF_ROUN
 		// print_stage_op(key_arr_inv[NO_OF_ROUNDS -1 - i]);
 		// If SPN
 		if(rounds[i] == 1)
-			SPNRound(out, key_arr_inv[NO_OF_ROUNDS -1 - i]);
+			SPNRoundDecrypt(out, key_arr_inv[NO_OF_ROUNDS -1 - i]);
 		// If Fiestel
 		else
-			FiestelRound(out, key_arr_inv[NO_OF_ROUNDS -1 - i]->block);
+			FiestelRoundDecrypt(out, key_arr_inv[NO_OF_ROUNDS -1 - i]->block);
 	}
 }
 
-StageBits** trivial_key_expansion(StageBits *key){
-	int i, j;
-
-	StageBits **arr = malloc(sizeof(StageBits *)*NO_OF_ROUNDS);
-	for(i=0; i<NO_OF_ROUNDS; i++){
-		arr[i] = malloc(sizeof(StageBits));
-		for(j=0; j<NO_OF_SBOXES; j++)
-			arr[i]->block[j] = key->block[j] * (i+1);
-	}
-
-	return arr;
-}
-
+/*
 int main(int argc, unsigned char** argv){
 	
 	// SPN Test Vector
@@ -210,3 +183,4 @@ int main(int argc, unsigned char** argv){
 
 	return 0;
 }
+*/
