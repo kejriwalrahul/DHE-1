@@ -110,7 +110,6 @@ void FiestelRound(StageBits *s, char key[]){
 	}
 }
 
-
 void SPNRound(StageBits *s, StageBits *key){
 	int i,j;
 
@@ -123,7 +122,7 @@ void SPNRound(StageBits *s, StageBits *key){
 		s->block[i] = sbox_8_8[i][s->block[i]];
 
 	// Permutation Layer
-
+	
 	// Step-1: Create dummy result 
 	StageBits new_s = {
 		{ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 }
@@ -132,13 +131,9 @@ void SPNRound(StageBits *s, StageBits *key){
 	// Step-2: Compute actual result
 	for(i=0; i<NO_OF_SBOXES; i++){
 		for(j=0; j<8; j++){
-			int bit_no = spn_permutation[i][j] - 1;
-			int bit_val = (( s->block[bit_no / 8] & (1 << (bit_no % 8)) ) >> (bit_no % 8));
-
-			printf("%d\n", bit_val);
-
+			int bit_no  = spn_permutation[i][j] - 1;
+			int bit_val = ( s->block[bit_no / 8] & (1 << (bit_no % 8)) ) >> (bit_no % 8);
 			new_s.block[i] |= bit_val << j;
-			printf("%d %x\n",i, new_s.block[i]);
 		}
 	}
 
@@ -147,8 +142,10 @@ void SPNRound(StageBits *s, StageBits *key){
 }
 
 int main(int argc, unsigned char** argv){
-	// Test Vector
-	StageBits s = { {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16} };
+	int i;
+	
+	// SPN Test Vector
+	StageBits s = { "hello world pro" };
 	StageBits k = { {16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1} };
 
 	char key[12] = {1,2,3,4,5,6,7,8,9,10,11,12};

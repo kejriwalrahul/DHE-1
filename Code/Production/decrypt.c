@@ -20,7 +20,7 @@ void SPNRound(StageBits *s, StageBits *key){
 	int i,j;
 
 	// Inverse Permutation Layer
-
+	
 	// Step-1: Create dummy result 
 	StageBits new_s = {
 		{ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 }
@@ -29,11 +29,12 @@ void SPNRound(StageBits *s, StageBits *key){
 	// Step-2: Compute actual result
 	for(i=0; i<NO_OF_SBOXES; i++){
 		for(j=0; j<8; j++){
-			int bit_no = inv_spn_permutation[i][j]; 
-			new_s.block[i] |= ((s->block[bit_no / 8] & (1<<(bit_no % 8)) ) >> (bit_no % 8)) << j;
+			int bit_no  = inv_spn_permutation[i][j] - 1;
+			int bit_val = ( s->block[bit_no / 8] & (1 << (bit_no % 8)) ) >> (bit_no % 8);
+			new_s.block[i] |=  bit_val << j;
 		}
 	}
-
+	
 	// Step-3: Assign result to s
 	*s = new_s;
 
@@ -157,8 +158,11 @@ void FiestelRound(StageBits *s, char key[]){
 
 
 int main(int argc, unsigned char** argv){
-	// Test Vector
-	StageBits s = { {0x55, 0xaa, 0x4, 0x55, 0x44, 0xaa, 0x0, 0xdd, 0x2a, 0x55, 0x0, } };
+	int i;
+	
+	// SPN Test Vector
+	// StageBits s = { 0x91, 0xc8, 0x29, 0x86, 0x8e, 0x94, 0xc2, 0x27, 0x19, 0x9, 0x29, 0xa1, 0x38, 0x67, 0xd1, 0xa3 };
+	StageBits s = { 0xb3, 0x18, 0x10, 0xb3, 0x1d, 0x4c,	0x22, 0xc6, 0xf8, 0x95, 0x39, 0x88, 0x40, 0x1d, 0x50, 0xd3 };
 	StageBits k = { {16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1} };
 
 	char key[12] = {1,2,3,4,5,6,7,8,9,10,11,12};
