@@ -18,6 +18,12 @@ typedef struct {
 	unsigned char block[NO_OF_SBOXES];
 } StageBits;
 
+void print_stage_op(StageBits *s){
+	int i;
+	for(i=0; i<NO_OF_SBOXES; i++)
+		printf("0x%x, ", s->block[i]);
+	printf("\n");
+}
 
 void FiestelRound(StageBits *s, char key[]){
 	char leftHalf[6], rightHalf[6];
@@ -134,7 +140,7 @@ void SPNRound(StageBits *s, StageBits *key){
 	for(i=0; i<NO_OF_SBOXES; i++){
 		for(j=0; j<8; j++){
 			int bit_no  = spn_permutation[i][j] - 1;
-			int bit_val = ( s->block[bit_no / 8] >> (bit_no % 8)) & 1;
+			int bit_val = ( s->block[bit_no / 8] >> (bit_no % 8) ) & 1;
 			new_s.block[i] |= bit_val << j;
 		}
 	}
@@ -145,13 +151,15 @@ void SPNRound(StageBits *s, StageBits *key){
 
 void FHE_encrypt(StageBits *inp, StageBits **key_arr, char rounds[NO_OF_ROUNDS]){
 	int i;
-	for(i=0; i<NO_OF_ROUNDS; i++)
+	for(i=0; i<NO_OF_ROUNDS; i++){
+		// print_stage_op(key_arr[i]);
 		// If SPN
 		if(rounds[i] == 1)
 			SPNRound(inp, key_arr[i]);
 		// If Fiestel
 		else
 			FiestelRound(inp, key_arr[i]->block);
+	}
 }
 
 StageBits** trivial_key_expansion(StageBits *key){
@@ -161,28 +169,24 @@ StageBits** trivial_key_expansion(StageBits *key){
 	for(i=0; i<NO_OF_ROUNDS; i++){
 		arr[i] = malloc(sizeof(StageBits));
 		for(j=0; j<NO_OF_SBOXES; j++)
-			arr[i]->block[j] = key->block[j] * i;
+			arr[i]->block[j] = key->block[j] * (i+1);
 	}
 
 	return arr;
 }
 
-void print_stage_op(StageBits *s){
-	int i;
-	for(i=0; i<NO_OF_SBOXES; i++)
-		printf("0x%x, ", s->block[i]);
-	printf("\n");
-}
-
 int main(int argc, unsigned char** argv){
 	StageBits s = { "hello world pro" };
 	StageBits k = { {16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1} };
-	char rounds[] = {1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0};
+	// char rounds[] = {1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0};
+	char rounds[] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
 
 	StageBits **key_arr = trivial_key_expansion(&k);
 
+	/*
 	int i;
 	for(i=0;i<20;i++)	print_stage_op(key_arr[i]);
+	*/
 
 	printf("PlainText:\n");
 	print_stage_op(&s);
