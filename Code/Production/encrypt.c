@@ -4,19 +4,19 @@
 #define NO_OF_SBOXES 16
 
 // 8x8 SBoxes
-extern char sbox_8_8[NO_OF_SBOXES][256];
+extern unsigned char sbox_8_8[NO_OF_SBOXES][256];
 
 // 6x4 SBoxes
-extern char sboxes_6_4[NO_OF_SBOXES][64];
+extern unsigned char sboxes_6_4[NO_OF_SBOXES][64];
 
 // SPN Permutation
-extern char spn_permutation[16][8]; 
+extern unsigned char spn_permutation[16][8]; 
 
 typedef struct {
-	char block[NO_OF_SBOXES];
+	unsigned char block[NO_OF_SBOXES];
 } StageBits;
 
-typedef char* KeyType;
+typedef unsigned char* KeyType;
 
 
 void FiestelRound(StageBits *s, char **key){
@@ -53,7 +53,7 @@ void FiestelRound(StageBits *s, char **key){
 
 	}
 
-	char out[8];
+	unsigned char out[8];
 	//substitution
 	unsigned long left, right, lpad, rpad;
 	left = 0;
@@ -143,8 +143,13 @@ void SPNRound(StageBits *s, StageBits *key){
 	// Step-2: Compute actual result
 	for(i=0; i<NO_OF_SBOXES; i++){
 		for(j=0; j<8; j++){
-			int bit_no = spn_permutation[i][j]; 
-			new_s.block[i] |= ( s->block[bit_no / 8] & (1 << (bit_no % 8)) ) << j;
+			int bit_no = spn_permutation[i][j] - 1;
+			int bit_val = (( s->block[bit_no / 8] & (1 << (bit_no % 8)) ) >> (bit_no % 8));
+
+			printf("%d\n", bit_val);
+
+			new_s.block[i] |= bit_val << j;
+			printf("%d %x\n",i, new_s.block[i]);
 		}
 	}
 
@@ -152,7 +157,7 @@ void SPNRound(StageBits *s, StageBits *key){
 	*s = new_s;
 }
 
-int main(int argc, char** argv){
+int main(int argc, unsigned char** argv){
 	// Test Vector
 	StageBits s = { {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16} };
 	StageBits k = { {16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1} };
