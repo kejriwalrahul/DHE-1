@@ -43,13 +43,13 @@ void FiestelRoundEncrypt(StageBits *s, char key[]){
 	int max_offset = (NO_OF_SBOXES/2 - 1)*6;
 	for(i=0; i<NO_OF_SBOXES/4; i++){
 		s->block[8+i/2]  = 0;
-		s->block[8+i/2]  = sboxes_6_4[2*i  ][(expansionLeft >> (max_offset-6*(2*i)))  & 0x3F] << 4;
+		s->block[8+i/2]  = sboxes_6_4[2*i  ][(expansionLeft >> (max_offset-6*(2*i)))   & 0x3F] << 4;
 		s->block[8+i/2] |= sboxes_6_4[2*i+1][(expansionLeft >> (max_offset-6*(2*i+1))) & 0x3F];
 	}
 
 	for(i=0; i<NO_OF_SBOXES/4; i++){
 		s->block[12+i/2]  = 0;
-		s->block[12+i/2]  = sboxes_6_4[8+2*i  ][(expansionRight >> (max_offset-6*(2*i)))  & 0x3F] << 4;
+		s->block[12+i/2]  = sboxes_6_4[8+2*i  ][(expansionRight >> (max_offset-6*(2*i)))   & 0x3F] << 4;
 		s->block[12+i/2] |= sboxes_6_4[8+2*i+1][(expansionRight >> (max_offset-6*(2*i+1))) & 0x3F];		
 	}
 	
@@ -66,7 +66,7 @@ void FiestelRoundEncrypt(StageBits *s, char key[]){
 	for(i=(3*NO_OF_SBOXES)/4; i<NO_OF_SBOXES; i++){
 		result.block[i] = 0;
 		for(j=0; j<8; j++){
-			int bit_no  = fperm[i-8][j] - 1 + 96; 
+			int bit_no  = fperm[i-8][j] - 1 + 64; 
 			int bit_val = (s->block[bit_no/8] >> (bit_no%8)) & 1;
 			result.block[i] |= bit_val << j;
 		}
@@ -113,7 +113,6 @@ void SPNRoundEncrypt(StageBits *s, StageBits *key){
 void FHE_encrypt(StageBits *inp, StageBits **key_arr, char rounds[NO_OF_ROUNDS]){
 	int i;
 	for(i=0; i<NO_OF_ROUNDS; i++){
-		// print_stage_op(inp);
 		// If SPN
 		if(rounds[i] == 1)
 			SPNRoundEncrypt(inp, key_arr[i]);
@@ -122,28 +121,3 @@ void FHE_encrypt(StageBits *inp, StageBits **key_arr, char rounds[NO_OF_ROUNDS])
 			FiestelRoundEncrypt(inp, key_arr[i]->block);
 	}
 }
-
-/*int main(int argc, unsigned char** argv){
-	StageBits s = { "hello world ami" };
-	StageBits k = { {16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1} };
-	// char rounds[] = {1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0};
-	char rounds[] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
-	// char rounds[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-	StageBits **key_arr = trivial_key_expansion(&k);
-
-	
-	// int i;
-	// for(i=0;i<20;i++)	print_stage_op(key_arr[i]);
-	
-
-	printf("PlainText:\n");
-	print_stage_op(&s);
-
-	FHE_encrypt(&s, key_arr, rounds);
-	
-	printf("CipherText:\n");
-	print_stage_op(&s);
-
-	return 0;
-}
-*/
