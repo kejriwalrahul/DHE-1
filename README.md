@@ -9,11 +9,11 @@ Fragile Hybrid Encryption - Mach 1
 
     where options can include:
 
-        ```-e <filname>``` - file to encrpyt
+        -e <filname> - file to encrpyt
 
-        ```-d <filname>``` - file to decrpyt
+        -d <filname> - file to decrpyt
 
-        ```-o <output_file>``` - file to write output
+        -o <output_file> - file to write output
 
 4. Run ```make clean``` to clean working directory.
 
