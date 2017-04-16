@@ -6,10 +6,15 @@ Fragile Hybrid Encryption - Mach 1
 1. Change into code directory using ```cd Code/Production/```
 2. Build binaries using ```make```
 3. The binary can be run using ```./bin/cbc_fhe [options]``` 
+
     where options can include:
-        -e <filname> - file to encrpyt
-        -d <filname> - file to decrpyt
-        -o <output_file> - file to write output
+
+        ```-e <filname>``` - file to encrpyt
+
+        ```-d <filname>``` - file to decrpyt
+
+        ```-o <output_file>``` - file to write output
+
 4. Run ```make clean``` to clean working directory.
 
 
