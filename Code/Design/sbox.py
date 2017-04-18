@@ -310,7 +310,7 @@ class SBox:
 
 
 	#utility method for crossover
-	def swapData(self,parent, pos):
+	def swapData(self, parent, pos):
 		mem = set(self.S[:pos])
 		
 		j = 0

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "helper.h"
 #include "encrypt.c"
@@ -36,6 +37,10 @@ char* rounds_structure_inv(StageBits *key){
 }
 
 void cbc_fhe_encrypt(FILE *in, FILE *out, StageBits *key){
+	clock_t start, end;
+
+	start = clock();
+
 	int byte_count = 0;
 	int i;
 	StageBits round_bits;
@@ -69,6 +74,11 @@ void cbc_fhe_encrypt(FILE *in, FILE *out, StageBits *key){
 	FILE *fp = fopen("fillen","w");
 	fprintf(fp, "%d\n", byte_count);
 	fclose(fp);
+
+	end = clock();
+	double cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+
+	printf("%lf\n", cpu_time_used);
 }
 
 void cbc_fhe_decrypt(FILE *out, FILE *in, StageBits *key){
