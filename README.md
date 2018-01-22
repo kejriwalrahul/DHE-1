@@ -1,5 +1,5 @@
-# FHE-1
-Fragile Hybrid Encryption - Mach 1
+# DHE-1
+Dynamic Hybrid Encryption - Mach 1
 
 ## Usage (Encryption/Decryption Code)
 
